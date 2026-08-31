@@ -235,16 +235,16 @@ print("=" * 70)
 print("📍 FAMOUS PLACES")
 print("=" * 70)
 
-for i, place in enumerate(plan["famous_places"], start=1):
+for i, place in enumerate(plan["famous_places"], 1):
     if place.get("image"):
         display(HTML(f'<img src="{place["image"]}" alt="{place["name"]}" width="400">'))
     
     print(f"    Cost: {place['cost']}")
     print(f"\n {i}. 📍 {place['name']}")
-    print(f"    Description: {place['description']}")
-    print(f"    Latitude: {place['latitude']}, Longitude: {place['longitude']}")
-    print(f"    Best Time to Visit: {place['best_time']}")
-    print(f"    Activities:")
+    print(f"Description: {place['description']}")
+    print(f"Latitude: {place['latitude']}, Longitude: {place['longitude']}")
+    print(f"Best Time to Visit: {place['best_time']}")
+    print("Activities:")
     for activity in place["activities"]:
         print(f"        - {activity}")
         
@@ -307,17 +307,17 @@ for day in plan["itinerary"]:
     print(f"DAY {day['day']}")
     print(f"TITLE {day['title']}")
     print(f"\n{'=' * 70}")
-    print(f"\n🌄 MORNING")
+    print("\n🌄 MORNING")
     print(day["morning"])
-    print(f"\n☀️ AFTERNOON")
+    print("\n☀️ AFTERNOON")
     print(day["afternoon"])
-    print(f"\n🌇 EVENING")
+    print("\n🌇 EVENING")
     print(day["evening"])
-    print(f"\n🍽️ FOOD")
+    print("\n🍽️ FOOD")
     print(day["food"])
-    print(f"\n🚌 TRANSPORTATION")
+    print("\n🚌 TRANSPORTATION")
     print(day["transportation"])
-    print(f"\n💰 COST")
+    print("\n💰 COST")
     print(day["cost"])
 
 # ================================================
@@ -364,7 +364,7 @@ print("💡 TRAVEL TIPS")
 print("=" * 70)
 
 for tip in plan["tips"]:
-    print(f"✅ {tip}")
+    print(f"✔️ {tip}")
     
 # ================================================
 # TRAVEL PLANNER COMPLETED

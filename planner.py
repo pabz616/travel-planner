@@ -3,7 +3,7 @@ import requests
 import json
 import time
 import folium
-from IPython.display import display, image, HTML
+from IPython.display import display, Image, HTML
 
 """
     TRAVEL PLANNER
@@ -171,3 +171,57 @@ def get_place_image(place, country):
         
     return None
 
+# ================================================
+# USER INPUT
+# ================================================
+
+
+print("=" * 70)
+print("AI TRAVEL PLANNER")
+print("=" * 70)
+
+country = input("Please enter the country you want to visit: ")
+days = int(input("How many days will you be traveling for? "))
+budget = float(input("What is your travel budget? "))
+interests = input("What are your interests (e.g., history, nature, food)? ")
+
+# ================================================
+# GENERATE TRAVEL PLAN
+# ================================================
+
+print("\n")
+print("=" * 70)
+print("\nGenerating your travel plan...")
+print("=" * 70)
+
+plan = create_travel_plan(country, days, budget, interests)
+
+# ================================================
+# BASIC INFORMATION
+# ================================================
+
+print("\n")
+print("=" * 70)
+print("\nBASIC INFORMATION:")
+print("=" * 70)
+print(f" 🌏 {country.upper()}")
+print("=" * 70)
+print("\nOVERVIEW:")
+print("=" * 70)
+print(plan["overview"])
+
+# ================================================
+# IMAGES OF FAMOUS PLACES
+# ================================================
+
+print("\n")
+print("=" * 70)
+print("\nIMAGES OF FAMOUS PLACES:")
+print("=" * 70)
+
+for place in plan["famous_places"]:
+    name = place["name"]
+    print(f" 🧭 {name}")
+    image = get_place_image(name, country)
+    
+    place["image"] = image

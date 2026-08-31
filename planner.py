@@ -278,9 +278,9 @@ travel_map = folium.Map(location=[avg_lat, avg_lon], zoom_start=6, tiles="OpenSt
 
 for i, place in enumerate(places, 1):
     popup_content = f"""
-    <div style="width: 200px;">
+    <div style="width: 300px;">
       <p>Cost:</b> {place['cost']}</p>
-      <h3>{📍 place['name']}</h3>
+      <h3>📍 {place['name']}</h3>
       <p>{place['description']}</p>
       <p>Best Time to Visit:</b> {place['best_time']}</p>
       <p>Activities:</p>
@@ -353,3 +353,23 @@ print(f"\n SOUVENIRS: {travel_budget['souvenirs']}")
 print("=" * 70)
 print(f"\n TOTAL: {travel_budget['total']}")
 print(f"\n REMAINING BUDGET: {travel_budget['remaining_budget']}")
+
+# ================================================
+# TRAVEL TIPS
+# ================================================
+
+print("\n")
+print("=" * 70)
+print("💡 TRAVEL TIPS")
+print("=" * 70)
+
+for tip in plan["tips"]:
+    print(f"✅ {tip}")
+    
+# ================================================
+# TRAVEL PLANNER COMPLETED
+# ================================================
+print("\n")
+print("=" * 70)
+print("🎉 TRAVEL PLAN COMPLETE!")
+print("=" * 70)

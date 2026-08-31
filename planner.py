@@ -177,7 +177,7 @@ def get_place_image(place, country):
 
 
 print("=" * 70)
-print("AI TRAVEL PLANNER")
+print(" ✈️ AI TRAVEL PLANNER")
 print("=" * 70)
 
 country = input("Please enter the country you want to visit: ")
@@ -202,11 +202,11 @@ plan = create_travel_plan(country, days, budget, interests)
 
 print("\n")
 print("=" * 70)
-print("\nBASIC INFORMATION:")
+print("\n ℹ️ BASIC INFORMATION:")
 print("=" * 70)
 print(f" 🌏 {country.upper()}")
 print("=" * 70)
-print("\nOVERVIEW:")
+print("\n 📝 OVERVIEW:")
 print("=" * 70)
 print(plan["overview"])
 
@@ -216,7 +216,7 @@ print(plan["overview"])
 
 print("\n")
 print("=" * 70)
-print("\nIMAGES OF FAMOUS PLACES:")
+print("🖼️ IMAGES OF FAMOUS PLACES:")
 print("=" * 70)
 
 for place in plan["famous_places"]:
@@ -225,3 +225,33 @@ for place in plan["famous_places"]:
     image = get_place_image(name, country)
     
     place["image"] = image
+
+# ================================================
+# FAMOUS PLACES
+# ================================================
+
+print("\n")
+print("=" * 70)
+print("📍 FAMOUS PLACES:")
+print("=" * 70)
+
+for i, place in enumerate(plan["famous_places"], start=1):
+    if place.get("image"):
+        display(HTML(f'<img src="{place["image"]}" alt="{place["name"]}" width="400">'))
+    
+    print(f"    Cost: {place['cost']}")
+    print(f"\n {i}. 📍 {place['name']}")
+    print(f"    Description: {place['description']}")
+    print(f"    Latitude: {place['latitude']}, Longitude: {place['longitude']}")
+    print(f"    Best Time to Visit: {place['best_time']}")
+    print(f"    Activities:")
+    for activity in place["activities"]:
+        print(f"        - {activity}")
+        
+    if place["image"]:
+        try:
+            display(Image(url=place["image"], width=400))
+        
+        except Exception as e:
+            print(f"Error displaying image for {place['name']}: {e}")
+    

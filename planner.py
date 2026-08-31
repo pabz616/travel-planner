@@ -331,3 +331,25 @@ print("=" * 70)
 
 for food in plan["food_recommendations"]:
     print(f"🍴 {food}")
+    
+# ================================================
+# TRAVEL BUDGET BREAKDOWN
+# ================================================
+
+print("\n")
+print("=" * 70)
+print("💰 TRAVEL BUDGET BREAKDOWN")
+print("=" * 70)
+
+travel_budget = plan["budget"]
+
+print(f"\n HOTEL: {travel_budget['hotel']}")
+print(f"\n FOOD: {travel_budget['food']}")
+print(f"\n TRANSPORTATION: {travel_budget['transportation']}")
+print(f"\n ACTIVITIES: {travel_budget['activities']}")
+print(f"\n SHOPPING: {travel_budget['shopping']}")
+print(f"\n EMERGENCIES: {travel_budget['emergency']}")
+print(f"\n SOUVENIRS: {travel_budget['souvenirs']}")
+print("=" * 70)
+print(f"\n TOTAL: {travel_budget['total']}")
+print(f"\n REMAINING BUDGET: {travel_budget['remaining_budget']}")

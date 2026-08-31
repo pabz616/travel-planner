@@ -50,7 +50,7 @@ def create_travel_plan(country, days,  budget, interests):
                "morning": "Morning plan",
                "afternoon": "Afternoon plan",
                "evening": "Evening plan",
-               "transport": "Transport recommendations",
+               "transportation": "Transportation recommendations",
                "cost": "$200.00"
             }}
         ],
@@ -293,3 +293,30 @@ for i, place in enumerate(places, 1):
         icon=folium.Icon(color="blue", icon="info-sign"),
     )
     
+# ================================================
+# DAY-BY-DAY ITINERARY
+# ================================================
+
+print("\n")
+print("=" * 70)
+print("📅 COMPLETE DAY-BY-DAY ITINERARY")
+print("=" * 70)
+
+for day in plan["itinerary"]:
+    print(f"\n{'=' * 70}")
+    print(f"DAY {day['day']}")
+    print(f"TITLE {day['title']}")
+    print(f"\n{'=' * 70}")
+    print(f"\n🌄 MORNING")
+    print(day["morning"])
+    print(f"\n☀️ AFTERNOON")
+    print(day["afternoon"])
+    print(f"\n🌇 EVENING")
+    print(day["evening"])
+    print(f"\n🍽️ FOOD")
+    print(day["food"])
+    print(f"\n🚌 TRANSPORTATION")
+    print(day["transportation"])
+    print(f"\n💰 COST")
+    print(day["cost"])
+

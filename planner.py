@@ -191,7 +191,7 @@ interests = input("What are your interests (e.g., history, nature, food)? ")
 
 print("\n")
 print("=" * 70)
-print("\nGenerating your travel plan...")
+print("\nGENERATING TRAVEL PLAN...")
 print("=" * 70)
 
 plan = create_travel_plan(country, days, budget, interests)
@@ -216,7 +216,7 @@ print(plan["overview"])
 
 print("\n")
 print("=" * 70)
-print("🖼️ IMAGES OF FAMOUS PLACES:")
+print("🖼️ IMAGES OF FAMOUS PLACES")
 print("=" * 70)
 
 for place in plan["famous_places"]:
@@ -232,7 +232,7 @@ for place in plan["famous_places"]:
 
 print("\n")
 print("=" * 70)
-print("📍 FAMOUS PLACES:")
+print("📍 FAMOUS PLACES")
 print("=" * 70)
 
 for i, place in enumerate(plan["famous_places"], start=1):
@@ -255,3 +255,20 @@ for i, place in enumerate(plan["famous_places"], start=1):
         except Exception as e:
             print(f"Error displaying image for {place['name']}: {e}")
     
+# ================================================
+# INTERACTIVE MAP
+# ================================================
+
+print("\n")
+print("=" * 70)
+print("🗺️ GENERATE INTERACTIVE MAP")
+print("=" * 70)
+
+places = plan["famous_places"]
+
+# CALC CENTER OF MAP
+
+avg_lat = sum(place["latitude"] for place in places) / len(places)
+avg_lon = sum(place["longitude"] for place in places) / len(places)
+
+travel_map = folium.Map(location=[avg_lat, avg_lon], zoom_start=6, tiles="OpenStreetMap") 

@@ -1,3 +1,6 @@
 {
-  "cSpell.words": ["genai"]
+  "cSpell.words": ["genai"],
+  "chat.tools.terminal.autoApprove": {
+    "pytest": true
+  }
 }

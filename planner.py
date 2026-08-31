@@ -33,7 +33,7 @@ def create_travel_plan(country, days,  budget, interests):
             [
                 {{
                     "name": "Famous Place",
-                    "description": "Detailed description of the famous place.",
+                    "description": "Detailed description",
                     "latitude": 0,
                     "longitude": 0,
                     "activities":[
@@ -53,36 +53,37 @@ def create_travel_plan(country, days,  budget, interests):
                "morning": "Morning plan",
                "afternoon": "Afternoon plan",
                "evening": "Evening plan",
+               "food": "Food recommendations",
                "transportation": "Transportation recommendations",
-               "cost": "$200.00"
+               "cost": "$200"
             }}
         ],
         
-            "food_recommendations": 
+            "food": 
             [
                 {{
                     "name": "Restaurant Name",
                     "cuisine": "Cuisine Type",
                     "address": "Restaurant Address",
                     "rating": 4.5,
-                    "cost": "$30.00"
+                    "cost": "$30"
                 }}
             ],
             
-            "budget_breakdown": 
+            "budget": 
             {{
-                "hotel": "$1000.00",
-                "food": "$300.00",
-                "transportation": "$200.00",
-                "activities": "$400.00",
-                "shopping": "$150.00",
-                "emergencies": "$100.00",
-                "souvenirs": "$100.00",
-                "total": "$2150.00",
-                "remaining_budget": "$850.00"
+                "hotel": "$1000",
+                "food": "$300",
+                "transportation": "$200",
+                "activities": "$400",
+                "shopping": "$150",
+                "emergencies": "$100",
+                "souvenirs": "$100",
+                "total": "$2150",
+                "remaining_budget": "$850"
             }}
             
-            "top-5_travel_tips": 
+            "tips": 
             [
                 "Tip 1",
                 "Tip 2",
@@ -117,8 +118,8 @@ def create_travel_plan(country, days,  budget, interests):
                 response = client.models.generate_content(
                     model=model,
                     contents=prompt,
-                    max_output_tokens=200000,
-                    temperature=1,
+                    # max_output_tokens=200000,
+                    # temperature=1,
                 )
 
                 text = response.text.strip()
@@ -332,7 +333,7 @@ print("=" * 70)
 print("🥣 MUST-TRY FOOD")
 print("=" * 70)
 
-for food in plan["food_recommendations"]:
+for food in plan["food"]:
     print(f"🍴 {food}")
     
 # ================================================
@@ -351,7 +352,7 @@ print(f"\n FOOD: {travel_budget['food']}")
 print(f"\n TRANSPORTATION: {travel_budget['transportation']}")
 print(f"\n ACTIVITIES: {travel_budget['activities']}")
 print(f"\n SHOPPING: {travel_budget['shopping']}")
-print(f"\n EMERGENCIES: {travel_budget['emergency']}")
+print(f"\n EMERGENCIES: {travel_budget['emergencies']}")
 print(f"\n SOUVENIRS: {travel_budget['souvenirs']}")
 print("=" * 70)
 print(f"\n TOTAL: {travel_budget['total']}")

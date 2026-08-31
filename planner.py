@@ -3,13 +3,16 @@ import requests
 import json
 import time
 import folium
+import os
+from dotenv import load_dotenv
 from IPython.display import display, Image, HTML
 
 """
     TRAVEL PLANNER
 """
 
-API_KEY = "#"
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
 
 client = genai.Client(api_key=API_KEY)
 
@@ -114,8 +117,8 @@ def create_travel_plan(country, days,  budget, interests):
                 response = client.models.generate_content(
                     model=model,
                     contents=prompt,
-                    max_output_tokens=2000,
-                    temperature=0.7,
+                    max_output_tokens=200000,
+                    temperature=1,
                 )
 
                 text = response.text.strip()

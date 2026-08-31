@@ -272,3 +272,24 @@ avg_lat = sum(place["latitude"] for place in places) / len(places)
 avg_lon = sum(place["longitude"] for place in places) / len(places)
 
 travel_map = folium.Map(location=[avg_lat, avg_lon], zoom_start=6, tiles="OpenStreetMap") 
+# ================================================
+# MAP MARKERS
+# ================================================
+
+for i, place in enumerate(places, 1):
+    popup_content = f"""
+    <div style="width: 200px;">
+      <p>Cost:</b> {place['cost']}</p>
+      <h3>{📍 place['name']}</h3>
+      <p>{place['description']}</p>
+      <p>Best Time to Visit:</b> {place['best_time']}</p>
+      <p>Activities:</p>
+    </div>
+    """
+    folium.Marker(
+        location=[place["latitude"], place["longitude"]],
+        popup=folium.Popup(popup_content, max_width=300),
+        tooltip=f" 📍 {i}. {place['name']}",
+        icon=folium.Icon(color="blue", icon="info-sign"),
+    )
+    

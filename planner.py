@@ -320,3 +320,14 @@ for day in plan["itinerary"]:
     print(f"\n💰 COST")
     print(day["cost"])
 
+# ================================================
+# FOOD
+# ================================================
+
+print("\n")
+print("=" * 70)
+print("🥣 MUST-TRY FOOD")
+print("=" * 70)
+
+for food in plan["food_recommendations"]:
+    print(f"🍴 {food}")

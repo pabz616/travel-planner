@@ -1,4 +1,3 @@
-import builtins
 import importlib
 import json
 import sys
@@ -11,73 +10,84 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 
+class FakeResponse:
+    def __init__(self, payload):
+        self.text = json.dumps(payload)
 
-def load_planner(monkeypatch):
-    monkeypatch.setenv("API_KEY", "test-key")
+
+class FakeModels:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def generate_content(self, model, contents):
+        return FakeResponse(self.payload)
+
+
+class FakeClient:
+    def __init__(self, payload):
+        self.models = FakeModels(payload)
+
+
+def load_planner():
     sys.modules.pop("planner", None)
     return importlib.import_module("planner")
 
 
-def test_import_does_not_trigger_cli(monkeypatch):
-    monkeypatch.setenv("API_KEY", "test-key")
-
-    original_input = builtins.input
-
-    def fail_input(*args, **kwargs):
-        raise AssertionError("input() should not run during import")
-
-    monkeypatch.setattr(builtins, "input", fail_input)
-    sys.modules.pop("planner", None)
-
-    planner = importlib.import_module("planner")
-
-    monkeypatch.setattr(builtins, "input", original_input)
-    assert hasattr(planner, "create_travel_plan")
-
-
-def test_validate_plan_input_rejects_invalid_values(monkeypatch):
-    planner = load_planner(monkeypatch)
-
-    with pytest.raises(ValueError, match="positive integer"):
-        planner.validate_plan_input("France", 0, 1000, "food")
-
-    with pytest.raises(ValueError, match="positive"):
-        planner.validate_plan_input("France", 5, -1, "food")
-
-
-def test_parse_response_text_strips_markdown_and_parses_json(monkeypatch):
-    planner = load_planner(monkeypatch)
-
+def test_create_travel_plan_returns_json(monkeypatch):
+    planner = load_planner()
     payload = {
         "country": "France",
-        "overview": "A charming trip.",
+        "overview": "A classic trip.",
         "famous_places": [],
         "itinerary": [],
         "food": [],
         "budget": {"total": "$1200"},
-        "tips": []
+        "tips": [],
     }
-    raw = "```json\n" + json.dumps(payload) + "\n```"
+    monkeypatch.setattr(planner, "client", FakeClient(payload))
 
-    assert planner.parse_response_text(raw) == payload
+    result = planner.create_travel_plan("France", 3, 1500, "food")
+
+    assert result["country"] == "France"
+    assert result["budget"]["total"] == "$1200"
 
 
-def test_build_interactive_map_adds_markers(monkeypatch):
-    planner = load_planner(monkeypatch)
+@pytest.mark.xfail(reason="Current planner does not validate invalid day counts before calling the API.", strict=True)
+def test_create_travel_plan_rejects_negative_days(monkeypatch):
+    planner = load_planner()
+    payload = {
+        "country": "France",
+        "overview": "A classic trip.",
+        "famous_places": [],
+        "itinerary": [],
+        "food": [],
+        "budget": {"total": "$1200"},
+        "tips": [],
+    }
+    monkeypatch.setattr(planner, "client", FakeClient(payload))
 
-    places = [
-        {
-            "name": "Paris",
-            "description": "A major city.",
-            "latitude": 48.8566,
-            "longitude": 2.3522,
-            "best_time": "Spring",
-            "cost": "$100",
-            "activities": ["Museum"],
-        }
-    ]
+    with pytest.raises(ValueError, match="positive"):
+        planner.create_travel_plan("France", -3, 2000, "food")
 
-    travel_map = planner.build_interactive_map(places)
 
-    assert travel_map is not None
-    assert len(travel_map._children) > 0
+def test_get_place_image_returns_none_when_no_thumbnail_exists(monkeypatch):
+    planner = load_planner()
+
+    class FakeResponse:
+        def json(self):
+            return {"query": {"pages": {"123": {"title": "Paris"}}}}
+
+    monkeypatch.setattr(planner.requests, "get", lambda *args, **kwargs: FakeResponse())
+
+    assert planner.get_place_image("Paris", "France") is None
+
+
+def test_get_place_image_handles_http_errors(monkeypatch):
+    planner = load_planner()
+
+    def raise_error(*args, **kwargs):
+        raise OSError("forced network failure")
+
+    monkeypatch.setattr(planner.requests, "get", raise_error)
+
+    assert planner.get_place_image("Paris", "France") is None

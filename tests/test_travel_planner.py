@@ -29,8 +29,8 @@ class FakeClient:
 
 
 def load_planner():
-    sys.modules.pop("planner", None)
-    return importlib.import_module("planner")
+    sys.modules.pop("travel_planner", None)
+    return importlib.import_module("travel_planner")
 
 
 def test_create_travel_plan_returns_json(monkeypatch):

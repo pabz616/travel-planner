@@ -176,6 +176,24 @@ def get_place_image(place, country):
     return None
 
 
+def _validate_text_input(value, field_name, max_length):
+    allowed_characters = set(" -&,.'()")
+    assert value, f"Please enter a valid {field_name}."
+    assert len(value) <= max_length, f"{field_name.title()} must be {max_length} characters or fewer."
+    assert all(character.isalpha() or character in allowed_characters for character in value), (
+        f"{field_name.title()} must contain letters and common separators only."
+    )
+
+
+def _validate_numeric_input(value, field_name, max_length):
+    assert value, f"Please enter a valid {field_name}."
+    assert len(value) <= max_length, f"{field_name.title()} must contain {max_length} digits or fewer."
+    assert all("0" <= character <= "9" for character in value), (
+        f"{field_name.title()} must contain digits only."
+    )
+    assert int(value) > 0, f"Please enter a positive {field_name}."
+
+
 def main():
     """Run the interactive travel planner CLI."""
     print("=" * 70)
@@ -184,25 +202,19 @@ def main():
     
     # USER INPUTS
 
-    country = input("Please enter the country you want to visit: ")
-    assert isinstance(country, str), "Input must be a string"
-    assert len(country) > 0, "Please enter a valid country name."
-    assert country.isalpha(), "The country name must contain only letters"
-    
-    days = int(input("How many days will you be traveling for? "))
-    assert isinstance(days, int), "Input must be an integer"
-    assert days > 0, "Please enter a valid number of days."
-    assert days.isnumeric(), "The number of days must be a positive integer"
+    country = input("Please enter the country you want to visit: ").strip()
+    _validate_text_input(country, "country name", 50)
 
-    budget = float(input("What is your travel budget? "))
-    assert isinstance(budget, float), "Input must be a float"
-    assert budget > 0, "Please enter a valid budget."
-    assert budget.isnumeric(), "The budget must be a positive number"
+    days_input = input("How many days will you be traveling for? ").strip()
+    _validate_numeric_input(days_input, "number of days", 2)
+    days = int(days_input)
 
-    interests = input("What are your interests (e.g., history, nature, food)? ")
-    assert isinstance(interests, str), "Input must be a string"
-    assert len(interests) > 0, "Please enter valid interests."
-    assert interests.isalpha(), "Please make sure your interests contain only letters"
+    budget_input = input("What is your travel budget? ").strip()
+    _validate_numeric_input(budget_input, "budget", 6)
+    budget = float(budget_input)
+
+    interests = input("What are your interests (e.g., history, nature, food)? ").strip()
+    _validate_text_input(interests, "interests", 100)
     
     # OUTPUT
     print("\n")

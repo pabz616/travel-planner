@@ -21,6 +21,51 @@ class PlanValidationError(ValueError):
     """Raised when the API response does not match the travel plan schema."""
 
 
+class ModelAvailabilityError(RuntimeError):
+    """Raised when no configured Gemini model is available."""
+
+
+class TravelPlanGenerationError(RuntimeError):
+    """Raised when available Gemini models cannot generate a valid plan."""
+
+
+def _model_name(model):
+    """Return a model resource name without the optional models/ prefix."""
+    name = getattr(model, "name", model)
+    return str(name).removeprefix("models/")
+
+
+def _supports_content_generation(model):
+    """Return whether a discovered model advertises content generation."""
+    supported_actions = getattr(model, "supported_actions", None)
+    if supported_actions is None:
+        return True
+    return any(action in supported_actions for action in ("generateContent", "generate_content"))
+
+
+def _configured_models():
+    """Return the primary model and optional fallback from environment settings."""
+    configured = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    fallback = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash-lite")
+    return list(dict.fromkeys(model.strip() for model in (configured, fallback) if model.strip()))
+
+
+def _available_configured_models():
+    """Filter configured models against the models exposed by the Gemini API."""
+    configured = _configured_models()
+    list_models = getattr(client.models, "list", None)
+    if list_models is None:
+        # Keep lightweight test doubles and older client wrappers usable.
+        return configured
+
+    available = {
+        _model_name(model)
+        for model in list_models()
+        if _supports_content_generation(model)
+    }
+    return [model for model in configured if model in available]
+
+
 def validate_travel_plan(plan):
     """Validate the fields required by the travel plan renderer."""
     required_sections = {
@@ -169,10 +214,21 @@ def create_travel_plan(country, days,  budget, interests):
         10. Provide a budget breakdown for the entire trip, including hotel, food, transportation, activities, shopping, emergencies, and souvenirs.
         """
         
-    models = [
-        "gemini-3.6-flash",
-        "gemini-3.6-turbo",
-    ]
+    try:
+        models = _available_configured_models()
+    except Exception as error:
+        raise ModelAvailabilityError(
+            "Unable to check Gemini model availability. Verify API_KEY, network access, "
+            "and the Google GenAI client configuration."
+        ) from error
+
+    if not models:
+        configured = ", ".join(_configured_models())
+        raise ModelAvailabilityError(
+            f"None of the configured Gemini models are available: {configured}. "
+            "Set GEMINI_MODEL to a model returned by the Gemini API and optionally "
+            "set GEMINI_FALLBACK_MODEL to a second supported model."
+        )
 
     last_error = None
     for model in models:
@@ -202,9 +258,10 @@ def create_travel_plan(country, days,  budget, interests):
                 time.sleep(3)  # Wait before retrying
                 continue
 
-    raise RuntimeError(
-        "Gemini did not return a valid travel plan after all retries. "
-        "Check the API response format and try again."
+    raise TravelPlanGenerationError(
+        "Gemini could not generate a valid travel plan with the available models "
+        f"({', '.join(models)}). Check your API quota and connection, then try again; "
+        "if the response format is rejected, choose another model with GEMINI_MODEL."
     ) from last_error
 
 

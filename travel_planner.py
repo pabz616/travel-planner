@@ -181,12 +181,30 @@ def main():
     print("=" * 70)
     print(" ✈️ AI TRAVEL PLANNER")
     print("=" * 70)
+    
+    # USER INPUTS
 
     country = input("Please enter the country you want to visit: ")
+    assert isinstance(country, str), "Input must be a string"
+    assert len(country) > 0, "Please enter a valid country name."
+    assert country.isalpha(), "The country name must contain only letters"
+    
     days = int(input("How many days will you be traveling for? "))
-    budget = float(input("What is your travel budget? "))
-    interests = input("What are your interests (e.g., history, nature, food)? ")
+    assert isinstance(days, int), "Input must be an integer"
+    assert days > 0, "Please enter a valid number of days."
+    assert days.isnumeric(), "The number of days must be a positive integer"
 
+    budget = float(input("What is your travel budget? "))
+    assert isinstance(budget, float), "Input must be a float"
+    assert budget > 0, "Please enter a valid budget."
+    assert budget.isnumeric(), "The budget must be a positive number"
+
+    interests = input("What are your interests (e.g., history, nature, food)? ")
+    assert isinstance(interests, str), "Input must be a string"
+    assert len(interests) > 0, "Please enter valid interests."
+    assert interests.isalpha(), "Please make sure your interests contain only letters"
+    
+    # OUTPUT
     print("\n")
     print("=" * 70)
     print("\nGENERATING TRAVEL PLAN...")

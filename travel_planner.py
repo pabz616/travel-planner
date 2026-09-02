@@ -175,205 +175,142 @@ def get_place_image(place, country):
         
     return None
 
-# ================================================
-# USER INPUT
-# ================================================
+
+def main():
+    """Run the interactive travel planner CLI."""
+    print("=" * 70)
+    print(" ✈️ AI TRAVEL PLANNER")
+    print("=" * 70)
+
+    country = input("Please enter the country you want to visit: ")
+    days = int(input("How many days will you be traveling for? "))
+    budget = float(input("What is your travel budget? "))
+    interests = input("What are your interests (e.g., history, nature, food)? ")
+
+    print("\n")
+    print("=" * 70)
+    print("\nGENERATING TRAVEL PLAN...")
+    print("=" * 70)
+
+    plan = create_travel_plan(country, days, budget, interests)
+
+    print("\n")
+    print("=" * 70)
+    print("\n ℹ️ BASIC INFORMATION:")
+    print("=" * 70)
+    print(f" 🌏 {country.upper()}")
+    print("=" * 70)
+    print("\n 📝 OVERVIEW:")
+    print("=" * 70)
+    print(plan["overview"])
+
+    print("\n")
+    print("=" * 70)
+    print("🖼️ IMAGES OF FAMOUS PLACES")
+    print("=" * 70)
+
+    for place in plan["famous_places"]:
+        name = place["name"]
+        print(f" 🧭 {name}")
+        place["image"] = get_place_image(name, country)
+
+    print("\n")
+    print("=" * 70)
+    print("📍 FAMOUS PLACES")
+    print("=" * 70)
+
+    for index, place in enumerate(plan["famous_places"], 1):
+        if place.get("image"):
+            display(HTML(f'<img src="{place["image"]}" alt="{place["name"]}" width="400">'))
+
+        print(f"    Cost: {place['cost']}")
+        print(f"\n {index}. 📍 {place['name']}")
+        print(f"Description: {place['description']}")
+        print(f"Latitude: {place['latitude']}, Longitude: {place['longitude']}")
+        print(f"Best Time to Visit: {place['best_time']}")
+        print("Activities:")
+        for activity in place["activities"]:
+            print(f"        - {activity}")
+
+        if place.get("image"):
+            try:
+                display(Image(url=place["image"], width=400))
+            except Exception as error:
+                print(f"Error displaying image for {place['name']}: {error}")
+
+    print("\n")
+    print("=" * 70)
+    print("🗺️ GENERATE INTERACTIVE MAP")
+    print("=" * 70)
+
+    places = plan["famous_places"]
+    avg_lat = sum(place["latitude"] for place in places) / len(places)
+    avg_lon = sum(place["longitude"] for place in places) / len(places)
+    travel_map = folium.Map(location=[avg_lat, avg_lon], zoom_start=6, tiles="OpenStreetMap")
+
+    for index, place in enumerate(places, 1):
+        popup_content = f"""
+        <div style="width: 300px;">
+          <p>Cost:</b> {place['cost']}</p>
+          <h3>📍 {place['name']}</h3>
+          <p>{place['description']}</p>
+          <p>Best Time to Visit:</b> {place['best_time']}</p>
+          <p>Activities:</p>
+        </div>
+        """
+        folium.Marker(
+            location=[place["latitude"], place["longitude"]],
+            popup=folium.Popup(popup_content, max_width=300),
+            tooltip=f" 📍 {index}. {place['name']}",
+            icon=folium.Icon(color="blue", icon="info-sign"),
+        ).add_to(travel_map)
+
+    print("\n")
+    print("=" * 70)
+    print("📅 COMPLETE DAY-BY-DAY ITINERARY")
+    print("=" * 70)
+
+    for day in plan["itinerary"]:
+        print(f"\n{'=' * 70}")
+        print(f"DAY {day['day']}")
+        print(f"TITLE {day['title']}")
+        print(f"\n{'=' * 70}")
+        for section, label in (("morning", "🌄 MORNING"), ("afternoon", "☀️ AFTERNOON"),
+                               ("evening", "🌇 EVENING"), ("food", "🍽️ FOOD"),
+                               ("transportation", "🚌 TRANSPORTATION"), ("cost", "💰 COST")):
+            print(f"\n{label}")
+            print(day[section])
+
+    print("\n")
+    print("=" * 70)
+    print("🥣 MUST-TRY FOOD")
+    print("=" * 70)
+    for food in plan["food"]:
+        print(f"🍴 {food}")
+
+    print("\n")
+    print("=" * 70)
+    print("💰 TRAVEL BUDGET BREAKDOWN")
+    print("=" * 70)
+    travel_budget = plan["budget"]
+    for category in ("hotel", "food", "transportation", "activities", "shopping", "emergencies", "souvenirs"):
+        print(f"\n {category.upper()}: {travel_budget[category]}")
+    print("=" * 70)
+    print(f"\n TOTAL: {travel_budget['total']}")
+    print(f"\n REMAINING BUDGET: {travel_budget['remaining_budget']}")
+
+    print("\n")
+    print("=" * 70)
+    print("💡 TRAVEL TIPS")
+    print("=" * 70)
+    for tip in plan["tips"]:
+        print(f"✔️ {tip}")
+
+    print("\n")
+    print("=" * 70)
+    print("🎉 TRAVEL PLAN COMPLETE!")
+    print("=" * 70)
 
 
-print("=" * 70)
-print(" ✈️ AI TRAVEL PLANNER")
-print("=" * 70)
-
-country = input("Please enter the country you want to visit: ")
-days = int(input("How many days will you be traveling for? "))
-budget = float(input("What is your travel budget? "))
-interests = input("What are your interests (e.g., history, nature, food)? ")
-
-# ================================================
-# GENERATE TRAVEL PLAN
-# ================================================
-
-print("\n")
-print("=" * 70)
-print("\nGENERATING TRAVEL PLAN...")
-print("=" * 70)
-
-plan = create_travel_plan(country, days, budget, interests)
-
-# ================================================
-# BASIC INFORMATION
-# ================================================
-
-print("\n")
-print("=" * 70)
-print("\n ℹ️ BASIC INFORMATION:")
-print("=" * 70)
-print(f" 🌏 {country.upper()}")
-print("=" * 70)
-print("\n 📝 OVERVIEW:")
-print("=" * 70)
-print(plan["overview"])
-
-# ================================================
-# IMAGES OF FAMOUS PLACES
-# ================================================
-
-print("\n")
-print("=" * 70)
-print("🖼️ IMAGES OF FAMOUS PLACES")
-print("=" * 70)
-
-for place in plan["famous_places"]:
-    name = place["name"]
-    print(f" 🧭 {name}")
-    image = get_place_image(name, country)
-    
-    place["image"] = image
-
-# ================================================
-# FAMOUS PLACES
-# ================================================
-
-print("\n")
-print("=" * 70)
-print("📍 FAMOUS PLACES")
-print("=" * 70)
-
-for i, place in enumerate(plan["famous_places"], 1):
-    if place.get("image"):
-        display(HTML(f'<img src="{place["image"]}" alt="{place["name"]}" width="400">'))
-    
-    print(f"    Cost: {place['cost']}")
-    print(f"\n {i}. 📍 {place['name']}")
-    print(f"Description: {place['description']}")
-    print(f"Latitude: {place['latitude']}, Longitude: {place['longitude']}")
-    print(f"Best Time to Visit: {place['best_time']}")
-    print("Activities:")
-    for activity in place["activities"]:
-        print(f"        - {activity}")
-        
-    if place["image"]:
-        try:
-            display(Image(url=place["image"], width=400))
-        
-        except Exception as e:
-            print(f"Error displaying image for {place['name']}: {e}")
-    
-# ================================================
-# INTERACTIVE MAP
-# ================================================
-
-print("\n")
-print("=" * 70)
-print("🗺️ GENERATE INTERACTIVE MAP")
-print("=" * 70)
-
-places = plan["famous_places"]
-
-# CALC CENTER OF MAP
-
-avg_lat = sum(place["latitude"] for place in places) / len(places)
-avg_lon = sum(place["longitude"] for place in places) / len(places)
-
-travel_map = folium.Map(location=[avg_lat, avg_lon], zoom_start=6, tiles="OpenStreetMap") 
-# ================================================
-# MAP MARKERS
-# ================================================
-
-for i, place in enumerate(places, 1):
-    popup_content = f"""
-    <div style="width: 300px;">
-      <p>Cost:</b> {place['cost']}</p>
-      <h3>📍 {place['name']}</h3>
-      <p>{place['description']}</p>
-      <p>Best Time to Visit:</b> {place['best_time']}</p>
-      <p>Activities:</p>
-    </div>
-    """
-    folium.Marker(
-        location=[place["latitude"], place["longitude"]],
-        popup=folium.Popup(popup_content, max_width=300),
-        tooltip=f" 📍 {i}. {place['name']}",
-        icon=folium.Icon(color="blue", icon="info-sign"),
-    )
-    
-# ================================================
-# DAY-BY-DAY ITINERARY
-# ================================================
-
-print("\n")
-print("=" * 70)
-print("📅 COMPLETE DAY-BY-DAY ITINERARY")
-print("=" * 70)
-
-for day in plan["itinerary"]:
-    print(f"\n{'=' * 70}")
-    print(f"DAY {day['day']}")
-    print(f"TITLE {day['title']}")
-    print(f"\n{'=' * 70}")
-    print("\n🌄 MORNING")
-    print(day["morning"])
-    print("\n☀️ AFTERNOON")
-    print(day["afternoon"])
-    print("\n🌇 EVENING")
-    print(day["evening"])
-    print("\n🍽️ FOOD")
-    print(day["food"])
-    print("\n🚌 TRANSPORTATION")
-    print(day["transportation"])
-    print("\n💰 COST")
-    print(day["cost"])
-
-# ================================================
-# FOOD
-# ================================================
-
-print("\n")
-print("=" * 70)
-print("🥣 MUST-TRY FOOD")
-print("=" * 70)
-
-for food in plan["food"]:
-    print(f"🍴 {food}")
-    
-# ================================================
-# TRAVEL BUDGET BREAKDOWN
-# ================================================
-
-print("\n")
-print("=" * 70)
-print("💰 TRAVEL BUDGET BREAKDOWN")
-print("=" * 70)
-
-travel_budget = plan["budget"]
-
-print(f"\n HOTEL: {travel_budget['hotel']}")
-print(f"\n FOOD: {travel_budget['food']}")
-print(f"\n TRANSPORTATION: {travel_budget['transportation']}")
-print(f"\n ACTIVITIES: {travel_budget['activities']}")
-print(f"\n SHOPPING: {travel_budget['shopping']}")
-print(f"\n EMERGENCIES: {travel_budget['emergencies']}")
-print(f"\n SOUVENIRS: {travel_budget['souvenirs']}")
-print("=" * 70)
-print(f"\n TOTAL: {travel_budget['total']}")
-print(f"\n REMAINING BUDGET: {travel_budget['remaining_budget']}")
-
-# ================================================
-# TRAVEL TIPS
-# ================================================
-
-print("\n")
-print("=" * 70)
-print("💡 TRAVEL TIPS")
-print("=" * 70)
-
-for tip in plan["tips"]:
-    print(f"✔️ {tip}")
-    
-# ================================================
-# TRAVEL PLANNER COMPLETED
-# ================================================
-print("\n")
-print("=" * 70)
-print("🎉 TRAVEL PLAN COMPLETE!")
-print("=" * 70)
+if __name__ == "__main__":
+    main()

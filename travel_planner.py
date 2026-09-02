@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from IPython.display import display, Image, HTML
 
 """
-    TRAVEL PLANNER
+   AI TRAVEL PLANNER
 """
 
 load_dotenv()
@@ -17,8 +17,72 @@ API_KEY = os.getenv("API_KEY")
 client = genai.Client(api_key=API_KEY)
 
 
+class PlanValidationError(ValueError):
+    """Raised when the API response does not match the travel plan schema."""
+
+
+def validate_travel_plan(plan):
+    """Validate the fields required by the travel plan renderer."""
+    required_sections = {
+        "country": str,
+        "overview": str,
+        "famous_places": list,
+        "itinerary": list,
+        "food": list,
+        "budget": dict,
+        "tips": list,
+    }
+
+    if not isinstance(plan, dict):
+        raise PlanValidationError("The API response must be a JSON object.")
+
+    for field, expected_type in required_sections.items():
+        if field not in plan:
+            raise PlanValidationError(f"The API response is missing required field '{field}'.")
+        if not isinstance(plan[field], expected_type):
+            raise PlanValidationError(
+                f"The API field '{field}' must be a {expected_type.__name__}."
+            )
+
+    place_fields = {
+        "name": str,
+        "description": str,
+        "latitude": (int, float),
+        "longitude": (int, float),
+        "activities": list,
+        "best_time": str,
+        "cost": str,
+    }
+    for index, place in enumerate(plan["famous_places"], 1):
+        if not isinstance(place, dict):
+            raise PlanValidationError(f"Famous place {index} must be a JSON object.")
+        for field, expected_type in place_fields.items():
+            if field not in place:
+                raise PlanValidationError(
+                    f"Famous place {index} is missing required field '{field}'."
+                )
+            if not isinstance(place[field], expected_type):
+                raise PlanValidationError(
+                    f"Famous place {index} field '{field}' has an invalid type."
+                )
+
+    budget_fields = (
+        "hotel", "food", "transportation", "activities", "shopping",
+        "emergencies", "souvenirs", "total", "remaining_budget",
+    )
+    for field in budget_fields:
+        if field not in plan["budget"]:
+            raise PlanValidationError(f"The budget is missing required field '{field}'.")
+        if not isinstance(plan["budget"][field], str):
+            raise PlanValidationError(f"The budget field '{field}' must be a string.")
+
+    return plan
+
+
 def create_travel_plan(country, days,  budget, interests):
     """GETS THE TRAVEL PLAN USING GEMINI API"""
+    if days <= 0:
+        raise ValueError("Number of days must be positive.")
     
     prompt = f"""Create a travel plan for: 
         Country: {country} 
@@ -110,6 +174,7 @@ def create_travel_plan(country, days,  budget, interests):
         "gemini-3.6-turbo",
     ]
 
+    last_error = None
     for model in models:
         for attempt in range(3):
             # ERROR HANDLING
@@ -129,14 +194,18 @@ def create_travel_plan(country, days,  budget, interests):
                 text = text.replace("```", "")
                 text = text.strip()
 
-                return json.loads(text)
+                return validate_travel_plan(json.loads(text))
 
             except Exception as e:
+                last_error = e
                 print(f"Error with model {model} on attempt {attempt + 1}: {e}")
                 time.sleep(3)  # Wait before retrying
                 continue
 
-    raise Exception("Gemini API is currently unavailable.")
+    raise RuntimeError(
+        "Gemini did not return a valid travel plan after all retries. "
+        "Check the API response format and try again."
+    ) from last_error
 
 
 def get_place_image(place, country):
@@ -181,16 +250,13 @@ def _validate_text_input(value, field_name, max_length):
     assert value, f"Please enter a valid {field_name}."
     assert len(value) <= max_length, f"{field_name.title()} must be {max_length} characters or fewer."
     assert all(character.isalpha() or character in allowed_characters for character in value), (
-        f"{field_name.title()} must contain letters and common separators only."
-    )
+        f"{field_name.title()} must contain letters and common separators only.")
 
 
 def _validate_numeric_input(value, field_name, max_length):
     assert value, f"Please enter a valid {field_name}."
     assert len(value) <= max_length, f"{field_name.title()} must contain {max_length} digits or fewer."
-    assert all("0" <= character <= "9" for character in value), (
-        f"{field_name.title()} must contain digits only."
-    )
+    assert all("0" <= character <= "9" for character in value), (f"{field_name.title()} must contain digits only.")
     assert int(value) > 0, f"Please enter a positive {field_name}."
 
 

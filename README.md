@@ -24,6 +24,12 @@ Use the following libraries:
 🔹 Google genai (Gemini), requests, json, time, folium, IPython
 🔹 Wikipedia
 
+Set `API_KEY` before running the planner. The app checks the Gemini API for
+generation-capable models before making a request. By default it uses
+`gemini-2.5-flash` and falls back to `gemini-2.5-flash-lite`; override these
+with `GEMINI_MODEL` and `GEMINI_FALLBACK_MODEL` when needed. If neither model
+is available, the planner reports the configuration change required.
+
 ### HOW IT WORKS
 
 Run the script `python3 planner.py`
@@ -37,6 +43,7 @@ If the location entered is valid, the output will look something like the follow
 ### TESTING
 
 The file `planner.py` has been tested for the following:
+
 - Missing API key validation
 - No input validation for days, budget, and interests
 - Prompt template contains malformed JSON fragments

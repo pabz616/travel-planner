@@ -45,8 +45,8 @@ def _supports_content_generation(model):
 
 def _configured_models():
     """Return the primary model and optional fallback from environment settings."""
-    configured = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    fallback = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash-lite")
+    configured = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+    fallback = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite")
     return list(dict.fromkeys(model.strip() for model in (configured, fallback) if model.strip()))
 
 
@@ -124,16 +124,27 @@ def validate_travel_plan(plan):
     return plan
 
 
-def create_travel_plan(country, days,  budget, interests):
+def create_travel_plan(country, days, budget, interests, weather=None):
     """GETS THE TRAVEL PLAN USING GEMINI API"""
     if days <= 0:
         raise ValueError("Number of days must be positive.")
+
+    weather_context = "Current weather data is unavailable."
+    if weather:
+        weather_context = (
+            f"Local time: {weather['local_time']}; "
+            f"temperature: {weather['temperature_c']} °C; "
+            f"weather code: {weather['weather_code']}; "
+            f"timezone: {weather['timezone']}."
+        )
     
     prompt = f"""Create a travel plan for: 
         Country: {country} 
         Number of Days: {days} 
         Travel Budget: {budget} 
         Interests: {interests}.
+        Live destination context (use this only for practical planning advice):
+        {weather_context}
         
         Return only valid JSON with the following structure:{{
             "country": "{country}",
@@ -265,6 +276,47 @@ def create_travel_plan(country, days,  budget, interests):
     ) from last_error
 
 
+def get_location_weather(location):
+    """Return local time and current temperature for a location using Open-Meteo."""
+    geocoding_url = "https://geocoding-api.open-meteo.com/v1/search"
+    forecast_url = "https://api.open-meteo.com/v1/forecast"
+
+    try:
+        geocoding_response = requests.get(
+            geocoding_url,
+            params={"name": location, "count": 1, "language": "en", "format": "json"},
+            timeout=10,
+        )
+        geocoding_response.raise_for_status()
+        results = geocoding_response.json().get("results", [])
+        if not results:
+            return None
+
+        match = results[0]
+        forecast_response = requests.get(
+            forecast_url,
+            params={
+                "latitude": match["latitude"],
+                "longitude": match["longitude"],
+                "current": "temperature_2m,weather_code",
+                "timezone": "auto",
+            },
+            timeout=10,
+        )
+        forecast_response.raise_for_status()
+        forecast = forecast_response.json()
+        current = forecast["current"]
+        return {
+            "local_time": current["time"].replace("T", " "),
+            "temperature_c": current["temperature_2m"],
+            "weather_code": current["weather_code"],
+            "timezone": forecast.get("timezone", match.get("timezone", "local time")),
+        }
+    except (KeyError, TypeError, ValueError, requests.RequestException) as error:
+        print(f"Weather error: {error}")
+        return None
+
+
 def get_place_image(place, country):
     """GETS THE IMAGE OF A PLACE USING GOOGLE SEARCH API"""
     
@@ -342,10 +394,11 @@ def main():
     # OUTPUT
     print("\n")
     print("=" * 70)
-    print("\nGENERATING TRAVEL PLAN...")
+    print("GENERATING TRAVEL PLAN...")
     print("=" * 70)
 
-    plan = create_travel_plan(country, days, budget, interests)
+    weather = get_location_weather(country)
+    plan = create_travel_plan(country, days, budget, interests, weather)
 
     print("\n")
     print("=" * 70)
@@ -354,9 +407,14 @@ def main():
     print(f" 🌏 {country.upper()}")
     print("=" * 70)
     print("\n 📝 OVERVIEW:")
-    print("=" * 70)
     print(plan["overview"])
-
+    print("\nℹ️ LOCAL TIME & TEMPERATURE:")
+    if weather:
+        print(f" 🕒 Local time: {weather['local_time']} ({weather['timezone']})")
+        print(f" 🌡️ Temperature: {weather['temperature_c']} °C")
+        print(f" 🌤️ Weather code: {weather['weather_code']}")
+    else:
+        print(" Weather data is currently unavailable.")
     print("\n")
     print("=" * 70)
     print("🖼️ IMAGES OF FAMOUS PLACES")

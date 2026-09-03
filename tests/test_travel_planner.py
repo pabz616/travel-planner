@@ -17,6 +17,9 @@ class FakeResponse:
     def __init__(self, payload):
         self.text = json.dumps(payload)
 
+    def raise_for_status(self):
+        pass
+
 
 class FakeModels:
     def __init__(self, payload):
@@ -146,3 +149,75 @@ def test_get_place_image_handles_http_errors(monkeypatch):
     monkeypatch.setattr(planner.requests, "get", raise_error)
 
     assert planner.get_place_image("Paris", "France") is None
+
+
+def test_get_location_weather_returns_local_time_and_temperature(monkeypatch):
+    planner = load_planner()
+    responses = iter([
+        FakeJsonResponse({"results": [{"latitude": 48.8566, "longitude": 2.3522}]}),
+        FakeJsonResponse({
+            "timezone": "Europe/Paris",
+            "current": {
+                "time": "2026-09-03T14:30",
+                "temperature_2m": 22.4,
+                "weather_code": 1,
+            },
+        }),
+    ])
+    requests = []
+
+    def fake_get(url, **kwargs):
+        requests.append((url, kwargs["params"]))
+        return next(responses)
+
+    monkeypatch.setattr(planner.requests, "get", fake_get)
+
+    assert planner.get_location_weather("France") == {
+        "local_time": "2026-09-03 14:30",
+        "temperature_c": 22.4,
+        "weather_code": 1,
+        "timezone": "Europe/Paris",
+    }
+    assert requests[0][1]["name"] == "France"
+    assert requests[1][1]["latitude"] == 48.8566
+
+
+class FakeJsonResponse:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def json(self):
+        return self.payload
+
+    def raise_for_status(self):
+        pass
+
+
+def test_create_travel_plan_adds_weather_to_prompt(monkeypatch):
+    planner = load_planner()
+    captured = {}
+
+    class PromptCapturingModels(FakeModels):
+        def generate_content(self, model, contents):
+            captured["prompt"] = contents
+            return super().generate_content(model, contents)
+
+    client = FakeClient(payload)
+    client.models = PromptCapturingModels(payload)
+    monkeypatch.setattr(planner, "client", client)
+
+    planner.create_travel_plan(
+        "France",
+        3,
+        1500,
+        "food",
+        {
+            "local_time": "2026-09-03 14:30",
+            "temperature_c": 22.4,
+            "weather_code": 1,
+            "timezone": "Europe/Paris",
+        },
+    )
+
+    assert "Local time: 2026-09-03 14:30" in captured["prompt"]
+    assert "temperature: 22.4 °C" in captured["prompt"]

@@ -216,3 +216,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

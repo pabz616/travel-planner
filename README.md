@@ -24,6 +24,10 @@ Use the following libraries:
 🔹 Google genai (Gemini), requests, json, time, folium, IPython
 🔹 Wikipedia
 
+The planner uses Open-Meteo for the selected location's local time and current
+temperature. No Open-Meteo API key is required; if the weather service is
+unavailable, the travel plan is still generated without live weather context.
+
 Set `API_KEY` before running the planner. The app checks the Gemini API for
 generation-capable models before making a request. By default it uses
 `gemini-2.5-flash` and falls back to `gemini-2.5-flash-lite`; override these

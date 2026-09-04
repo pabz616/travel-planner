@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_c5b1683ebbf1de9ba1346bbb446d8639 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_c5b1683ebbf1de9ba1346bbb446d8639" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_c5b1683ebbf1de9ba1346bbb446d8639 = L.map(
+                "map_c5b1683ebbf1de9ba1346bbb446d8639",
+                {
+                    center: [32.329100000000004, -64.7432375],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 6,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_81406fbd5adaef91ebb8f7d742fc2d40 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_81406fbd5adaef91ebb8f7d742fc2d40.addTo(map_c5b1683ebbf1de9ba1346bbb446d8639);
+        
+    
+            var marker_880be2189addcf7e0106088b205e1957 = L.marker(
+                [32.3245, -64.8322],
+                {
+}
+            ).addTo(map_c5b1683ebbf1de9ba1346bbb446d8639);
+        
+    
+            var icon_5058fac4e9499fbba79483c18489d9cc = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_8f8615c48375b0d7bc3ae2ff187ed0eb = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_a33b73a5af0194b1c8134ea210af91b4 = $(`<div id="html_a33b73a5af0194b1c8134ea210af91b4" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Royal Naval Dockyard</h3>           <p>A historic naval base converted into a bustling cultural and tourist hub.</p>           <p><b>Cost:</b> Free entry, museum ticket $15</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Sightseeing</li><li>Shopping</li><li>Museum visiting</li></ul>         </div>         </div>`)[0];
+                popup_8f8615c48375b0d7bc3ae2ff187ed0eb.setContent(html_a33b73a5af0194b1c8134ea210af91b4);
+            
+        
+
+        marker_880be2189addcf7e0106088b205e1957.bindPopup(popup_8f8615c48375b0d7bc3ae2ff187ed0eb)
+        ;
+
+        
+    
+    
+            marker_880be2189addcf7e0106088b205e1957.bindTooltip(
+                `<div>
+                     📍 1. Royal Naval Dockyard
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_880be2189addcf7e0106088b205e1957.setIcon(icon_5058fac4e9499fbba79483c18489d9cc);
+            
+    
+            var marker_f3f682f227fbce54a026614472966143 = L.marker(
+                [32.3789, -64.6766],
+                {
+}
+            ).addTo(map_c5b1683ebbf1de9ba1346bbb446d8639);
+        
+    
+            var icon_2239b97a1dfe985a999b0db153502d94 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_78a05fa2462845e628d334ea44ed2866 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_c1e17120d6411e61244eea3e82022894 = $(`<div id="html_c1e17120d6411e61244eea3e82022894" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 St. George&#x27;s Town</h3>           <p>The oldest continuously inhabited English town in the New World, a UNESCO World Heritage site.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Afternoon</p>           <p><b>Activities:</b></p>           <ul><li>Walking tours</li><li>Historical exploration</li><li>Dining</li></ul>         </div>         </div>`)[0];
+                popup_78a05fa2462845e628d334ea44ed2866.setContent(html_c1e17120d6411e61244eea3e82022894);
+            
+        
+
+        marker_f3f682f227fbce54a026614472966143.bindPopup(popup_78a05fa2462845e628d334ea44ed2866)
+        ;
+
+        
+    
+    
+            marker_f3f682f227fbce54a026614472966143.bindTooltip(
+                `<div>
+                     📍 2. St. George&#x27;s Town
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_f3f682f227fbce54a026614472966143.setIcon(icon_2239b97a1dfe985a999b0db153502d94);
+            
+    
+            var marker_25b950edb974e86b67a63c37a1236a20 = L.marker(
+                [32.3842, -64.6675],
+                {
+}
+            ).addTo(map_c5b1683ebbf1de9ba1346bbb446d8639);
+        
+    
+            var icon_c2ba6f3d384b0021baf4b0471e3c99e1 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_eacaad3b95429331e23b0f6df9331ba1 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_903e5a8ebe39e581d5f861d681c8348f = $(`<div id="html_903e5a8ebe39e581d5f861d681c8348f" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Fort St. Catherine</h3>           <p>A massive 19th-century coastal fortification housing historical artifacts and exhibits.</p>           <p><b>Cost:</b> $10</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Exploring tunnels</li><li>Viewing exhibits</li><li>Photography</li></ul>         </div>         </div>`)[0];
+                popup_eacaad3b95429331e23b0f6df9331ba1.setContent(html_903e5a8ebe39e581d5f861d681c8348f);
+            
+        
+
+        marker_25b950edb974e86b67a63c37a1236a20.bindPopup(popup_eacaad3b95429331e23b0f6df9331ba1)
+        ;
+
+        
+    
+    
+            marker_25b950edb974e86b67a63c37a1236a20.bindTooltip(
+                `<div>
+                     📍 3. Fort St. Catherine
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_25b950edb974e86b67a63c37a1236a20.setIcon(icon_c2ba6f3d384b0021baf4b0471e3c99e1);
+            
+    
+            var marker_ce6fbaf0caabb5100999e4567469f77c = L.marker(
+                [32.3792, -64.6769],
+                {
+}
+            ).addTo(map_c5b1683ebbf1de9ba1346bbb446d8639);
+        
+    
+            var icon_e288f28db07951b6751c16fd2995aa31 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_1850f94d27f5e86a6df6cd70287b29f1 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_dbd892f64b0627ac59b742b54cbdf221 = $(`<div id="html_dbd892f64b0627ac59b742b54cbdf221" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 St. Peter&#x27;s Church</h3>           <p>The oldest surviving Anglican church in continuous use in the Western Hemisphere.</p>           <p><b>Cost:</b> $5 donation</p>           <p><b>Best Time to Visit:</b> Afternoon</p>           <p><b>Activities:</b></p>           <ul><li>Historical tour</li><li>Architecture admiration</li></ul>         </div>         </div>`)[0];
+                popup_1850f94d27f5e86a6df6cd70287b29f1.setContent(html_dbd892f64b0627ac59b742b54cbdf221);
+            
+        
+
+        marker_ce6fbaf0caabb5100999e4567469f77c.bindPopup(popup_1850f94d27f5e86a6df6cd70287b29f1)
+        ;
+
+        
+    
+    
+            marker_ce6fbaf0caabb5100999e4567469f77c.bindTooltip(
+                `<div>
+                     📍 4. St. Peter&#x27;s Church
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_ce6fbaf0caabb5100999e4567469f77c.setIcon(icon_e288f28db07951b6751c16fd2995aa31);
+            
+    
+            var marker_08015126d7e2db572f054a68bf1adaea = L.marker(
+                [32.2536, -64.8258],
+                {
+}
+            ).addTo(map_c5b1683ebbf1de9ba1346bbb446d8639);
+        
+    
+            var icon_15cb9b4ca6edb11e3731e18964fbfa48 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_2327e43dd19d7b3c0c46b45d4abb0ac3 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_4de2ec7df1957566446385b7eec28b0e = $(`<div id="html_4de2ec7df1957566446385b7eec28b0e" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Gibbs Hill Lighthouse</h3>           <p>One of the world&#x27;s first cast-iron lighthouses offering panoramic island views.</p>           <p><b>Cost:</b> $5</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Climbing</li><li>Sightseeing</li></ul>         </div>         </div>`)[0];
+                popup_2327e43dd19d7b3c0c46b45d4abb0ac3.setContent(html_4de2ec7df1957566446385b7eec28b0e);
+            
+        
+
+        marker_08015126d7e2db572f054a68bf1adaea.bindPopup(popup_2327e43dd19d7b3c0c46b45d4abb0ac3)
+        ;
+
+        
+    
+    
+            marker_08015126d7e2db572f054a68bf1adaea.bindTooltip(
+                `<div>
+                     📍 5. Gibbs Hill Lighthouse
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_08015126d7e2db572f054a68bf1adaea.setIcon(icon_15cb9b4ca6edb11e3731e18964fbfa48);
+            
+    
+            var marker_8fd6527a0fcaac269ea5f4999818a601 = L.marker(
+                [32.2924, -64.7831],
+                {
+}
+            ).addTo(map_c5b1683ebbf1de9ba1346bbb446d8639);
+        
+    
+            var icon_86481102e425a8fb36ed0dd3379a5912 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_ef8c519b3d52f447316068d5f20126de = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_cb7c3216c460c4d4dbe2c508ca2fbbda = $(`<div id="html_cb7c3216c460c4d4dbe2c508ca2fbbda" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Bermuda National Gallery</h3>           <p>Located in City Hall, featuring an impressive collection of local and international art.</p>           <p><b>Cost:</b> $10</p>           <p><b>Best Time to Visit:</b> Afternoon</p>           <p><b>Activities:</b></p>           <ul><li>Art viewing</li><li>Cultural immersion</li></ul>         </div>         </div>`)[0];
+                popup_ef8c519b3d52f447316068d5f20126de.setContent(html_cb7c3216c460c4d4dbe2c508ca2fbbda);
+            
+        
+
+        marker_8fd6527a0fcaac269ea5f4999818a601.bindPopup(popup_ef8c519b3d52f447316068d5f20126de)
+        ;
+
+        
+    
+    
+            marker_8fd6527a0fcaac269ea5f4999818a601.bindTooltip(
+                `<div>
+                     📍 6. Bermuda National Gallery
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8fd6527a0fcaac269ea5f4999818a601.setIcon(icon_86481102e425a8fb36ed0dd3379a5912);
+            
+    
+            var marker_5b95382e90160f8b4cd84017bd3a819e = L.marker(
+                [32.3422, -64.7119],
+                {
+}
+            ).addTo(map_c5b1683ebbf1de9ba1346bbb446d8639);
+        
+    
+            var icon_9ff38c08fad68939f3cfae49997bf210 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_1e5bd62e8e162bc56ff72a98131746b3 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_71fc44317ae795feb9ff130b8b25ec0b = $(`<div id="html_71fc44317ae795feb9ff130b8b25ec0b" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Crystal Caves</h3>           <p>Stunning subterranean caves featuring crystal-clear subterranean lakes and delicate stalactites.</p>           <p><b>Cost:</b> $25</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Cave exploration</li><li>Guided tours</li></ul>         </div>         </div>`)[0];
+                popup_1e5bd62e8e162bc56ff72a98131746b3.setContent(html_71fc44317ae795feb9ff130b8b25ec0b);
+            
+        
+
+        marker_5b95382e90160f8b4cd84017bd3a819e.bindPopup(popup_1e5bd62e8e162bc56ff72a98131746b3)
+        ;
+
+        
+    
+    
+            marker_5b95382e90160f8b4cd84017bd3a819e.bindTooltip(
+                `<div>
+                     📍 7. Crystal Caves
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_5b95382e90160f8b4cd84017bd3a819e.setIcon(icon_9ff38c08fad68939f3cfae49997bf210);
+            
+    
+            var marker_3315e9c7fddeb26685b89063b628a4df = L.marker(
+                [32.2778, -64.7719],
+                {
+}
+            ).addTo(map_c5b1683ebbf1de9ba1346bbb446d8639);
+        
+    
+            var icon_433c78debef1f5b9d5ea6322e388fa3a = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_be3c043b0cd02287794aa0c009b285be = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_2d378bdb564cda676ac2c0abe20c8517 = $(`<div id="html_2d378bdb564cda676ac2c0abe20c8517" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Elbow Beach</h3>           <p>A renowned stretch of pink sand offering relaxing ocean views and historical coastal charm.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Sunset</p>           <p><b>Activities:</b></p>           <ul><li>Beach walking</li><li>Relaxing</li></ul>         </div>         </div>`)[0];
+                popup_be3c043b0cd02287794aa0c009b285be.setContent(html_2d378bdb564cda676ac2c0abe20c8517);
+            
+        
+
+        marker_3315e9c7fddeb26685b89063b628a4df.bindPopup(popup_be3c043b0cd02287794aa0c009b285be)
+        ;
+
+        
+    
+    
+            marker_3315e9c7fddeb26685b89063b628a4df.bindTooltip(
+                `<div>
+                     📍 8. Elbow Beach
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_3315e9c7fddeb26685b89063b628a4df.setIcon(icon_433c78debef1f5b9d5ea6322e388fa3a);
+            
+</script>
+</html>

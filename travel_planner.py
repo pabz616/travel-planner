@@ -1,131 +1,226 @@
-from google import genai
-import requests
-import json
-import time
-import folium
-import os
-from dotenv import load_dotenv
-from IPython.display import display, Image, HTML
+"""
+AI TRAVEL PLANNER (revised)
+"""
 
-"""
-   AI TRAVEL PLANNER
-"""
+from __future__ import annotations
+
+import html
+import logging
+import os
+import time
+from functools import lru_cache
+from typing import Optional
+
+import folium
+import requests
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
+from pydantic import BaseModel, Field, ValidationError
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger("travel_planner")
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
+if not API_KEY:
+    raise RuntimeError("API_KEY is not set. Add it to your environment or .env file.")
 
 client = genai.Client(api_key=API_KEY)
 
+GEMINI_TIMEOUT_MS = 60_000
+MAX_OUTPUT_TOKENS = 8192
+MAX_ATTEMPTS_PER_MODEL = 3
+RETRY_DELAY_SECONDS = 3
 
-class PlanValidationError(ValueError):
-    """Raised when the API response does not match the travel plan schema."""
+
+# --------------------------------------------------------------------------
+# Exceptions
+# --------------------------------------------------------------------------
+
+class TravelPlannerError(Exception):
+    """Base class for errors raised by this module."""
 
 
-class ModelAvailabilityError(RuntimeError):
+class InputValidationError(TravelPlannerError):
+    """Raised when user-supplied input fails validation."""
+
+
+class ModelAvailabilityError(TravelPlannerError):
     """Raised when no configured Gemini model is available."""
 
 
-class TravelPlanGenerationError(RuntimeError):
-    """Raised when available Gemini models cannot generate a valid plan."""
+class TravelPlanGenerationError(TravelPlannerError):
+    """Raised when available Gemini models cannot produce a valid plan."""
 
 
-def _model_name(model):
-    """Return a model resource name without the optional models/ prefix."""
+# --------------------------------------------------------------------------
+# Schema (doubles as the Gemini response_schema and our validator)
+# --------------------------------------------------------------------------
+
+class FamousPlace(BaseModel):
+    name: str
+    description: str
+    latitude: float
+    longitude: float
+    activities: list[str]
+    best_time: str
+    cost: str
+
+
+class ItineraryDay(BaseModel):
+    day: int
+    title: str
+    morning: str
+    afternoon: str
+    evening: str
+    food: str
+    transportation: str
+    cost: str
+
+
+class FoodRecommendation(BaseModel):
+    name: str
+    cuisine: str
+    address: str
+    rating: float
+    cost: str
+
+
+class Budget(BaseModel):
+    hotel: str
+    food: str
+    transportation: str
+    activities: str
+    shopping: str
+    emergencies: str
+    souvenirs: str
+    total: str
+    remaining_budget: str
+
+
+class TravelPlan(BaseModel):
+    country: str
+    overview: str
+    famous_places: list[FamousPlace] = Field(min_length=8)
+    itinerary: list[ItineraryDay]
+    food: list[FoodRecommendation]
+    budget: Budget
+    tips: list[str]
+
+
+# --------------------------------------------------------------------------
+# Model availability (cached — no need to re-list on every call)
+# --------------------------------------------------------------------------
+
+def _model_name(model) -> str:
     name = getattr(model, "name", model)
     return str(name).removeprefix("models/")
 
 
-def _supports_content_generation(model):
-    """Return whether a discovered model advertises content generation."""
+def _supports_content_generation(model) -> bool:
     supported_actions = getattr(model, "supported_actions", None)
     if supported_actions is None:
         return True
     return any(action in supported_actions for action in ("generateContent", "generate_content"))
 
 
-def _configured_models():
-    """Return the primary model and optional fallback from environment settings."""
+def _configured_models() -> list[str]:
     configured = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
     fallback = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite")
-    return list(dict.fromkeys(model.strip() for model in (configured, fallback) if model.strip()))
+    return list(dict.fromkeys(m.strip() for m in (configured, fallback) if m.strip()))
 
 
-def _available_configured_models():
-    """Filter configured models against the models exposed by the Gemini API."""
+@lru_cache(maxsize=1)
+def _available_configured_models() -> tuple[str, ...]:
+    """Filter configured models against what the Gemini API currently exposes.
+
+    Cached for the process lifetime: this is a network call, and the set of
+    available models does not change mid-run.
+    """
     configured = _configured_models()
     list_models = getattr(client.models, "list", None)
     if list_models is None:
-        # Keep lightweight test doubles and older client wrappers usable.
-        return configured
+        return tuple(configured)
 
     available = {
         _model_name(model)
         for model in list_models()
         if _supports_content_generation(model)
     }
-    return [model for model in configured if model in available]
+    return tuple(model for model in configured if model in available)
 
 
-def validate_travel_plan(plan):
-    """Validate the fields required by the travel plan renderer."""
-    required_sections = {
-        "country": str,
-        "overview": str,
-        "famous_places": list,
-        "itinerary": list,
-        "food": list,
-        "budget": dict,
-        "tips": list,
+# --------------------------------------------------------------------------
+# Budget sanity check
+# --------------------------------------------------------------------------
+
+def _parse_money(value: str) -> Optional[float]:
+    """Best-effort parse of a '$1,234.50'-style string. Returns None if unparsable."""
+    cleaned = "".join(ch for ch in value if ch.isdigit() or ch == ".")
+    try:
+        return float(cleaned) if cleaned else None
+    except ValueError:
+        return None
+
+
+def check_budget_consistency(plan: TravelPlan, stated_budget: float) -> list[str]:
+    """Return a list of human-readable warnings about the budget, if any."""
+    warnings: list[str] = []
+    b = plan.budget
+    parts = {
+        "hotel": _parse_money(b.hotel),
+        "food": _parse_money(b.food),
+        "transportation": _parse_money(b.transportation),
+        "activities": _parse_money(b.activities),
+        "shopping": _parse_money(b.shopping),
+        "emergencies": _parse_money(b.emergencies),
+        "souvenirs": _parse_money(b.souvenirs),
     }
+    total_claimed = _parse_money(b.total)
 
-    if not isinstance(plan, dict):
-        raise PlanValidationError("The API response must be a JSON object.")
+    if any(value is None for value in parts.values()) or total_claimed is None:
+        warnings.append("Could not parse one or more budget figures for a consistency check.")
+        return warnings
 
-    for field, expected_type in required_sections.items():
-        if field not in plan:
-            raise PlanValidationError(f"The API response is missing required field '{field}'.")
-        if not isinstance(plan[field], expected_type):
-            raise PlanValidationError(
-                f"The API field '{field}' must be a {expected_type.__name__}."
-            )
+    computed_total = sum(parts.values())  # type: ignore[arg-type]
+    if abs(computed_total - total_claimed) > 1.0:
+        warnings.append(
+            f"Budget line items sum to ${computed_total:,.2f}, "
+            f"but the plan's stated total is {b.total}."
+        )
 
-    place_fields = {
-        "name": str,
-        "description": str,
-        "latitude": (int, float),
-        "longitude": (int, float),
-        "activities": list,
-        "best_time": str,
-        "cost": str,
-    }
-    for index, place in enumerate(plan["famous_places"], 1):
-        if not isinstance(place, dict):
-            raise PlanValidationError(f"Famous place {index} must be a JSON object.")
-        for field, expected_type in place_fields.items():
-            if field not in place:
-                raise PlanValidationError(
-                    f"Famous place {index} is missing required field '{field}'."
-                )
-            if not isinstance(place[field], expected_type):
-                raise PlanValidationError(
-                    f"Famous place {index} field '{field}' has an invalid type."
-                )
+    if total_claimed > stated_budget:
+        warnings.append(
+            f"The plan's total ({b.total}) exceeds your stated budget (${stated_budget:,.2f})."
+        )
 
-    budget_fields = (
-        "hotel", "food", "transportation", "activities", "shopping",
-        "emergencies", "souvenirs", "total", "remaining_budget",
-    )
-    for field in budget_fields:
-        if field not in plan["budget"]:
-            raise PlanValidationError(f"The budget is missing required field '{field}'.")
-        if not isinstance(plan["budget"][field], str):
-            raise PlanValidationError(f"The budget field '{field}' must be a string.")
-
-    return plan
+    return warnings
 
 
-def create_travel_plan(country, days, budget, interests, weather=None):
-    """GETS THE TRAVEL PLAN USING GEMINI API"""
+# --------------------------------------------------------------------------
+# Plan generation
+# --------------------------------------------------------------------------
+
+_RETRYABLE_ERROR_MARKERS = (
+    "429", "500", "502", "503", "504", "timeout", "timed out",
+    "unavailable", "internal", "rate limit", "deadline",
+)
+
+
+def _is_retryable(error: Exception) -> bool:
+    text = str(error).lower()
+    return any(marker in text for marker in _RETRYABLE_ERROR_MARKERS)
+
+
+def create_travel_plan(
+    country: str,
+    days: int,
+    budget: float,
+    interests: str,
+    weather: Optional[dict] = None,
+) -> TravelPlan:
+    """Generate a validated TravelPlan using Gemini structured output."""
     if days <= 0:
         raise ValueError("Number of days must be positive.")
 
@@ -137,94 +232,31 @@ def create_travel_plan(country, days, budget, interests, weather=None):
             f"weather code: {weather['weather_code']}; "
             f"timezone: {weather['timezone']}."
         )
-    
-    prompt = f"""Create a travel plan for: 
-        Country: {country} 
-        Number of Days: {days} 
-        Travel Budget: {budget} 
-        Interests: {interests}.
+
+    prompt = f"""Create a travel plan for:
+        Country: {country}
+        Number of Days: {days}
+        Travel Budget: ${budget:,.2f}
+        Interests: {interests}
         Live destination context (use this only for practical planning advice):
         {weather_context}
-        
-        Return only valid JSON with the following structure:{{
-            "country": "{country}",
-            "overview": "A brief overview or description of the travel plan, highlighting key attractions and experiences.",
-            "famous_places": 
-            [
-                {{
-                    "name": "Famous Place",
-                    "description": "Detailed description",
-                    "latitude": 0,
-                    "longitude": 0,
-                    "activities":[
-                        "Activity 1",
-                        "Activity 2"
-                    ],
-                    
-                    "best_time': "Best time",
-                    "cost": "$50";
-                    
-                }}
-            
-            "itinerary": [
-            {{
-               "day": 1,
-               "title": "Day 1 Title",
-               "morning": "Morning plan",
-               "afternoon": "Afternoon plan",
-               "evening": "Evening plan",
-               "food": "Food recommendations",
-               "transportation": "Transportation recommendations",
-               "cost": "$200"
-            }}
-        ],
-        
-            "food": 
-            [
-                {{
-                    "name": "Restaurant Name",
-                    "cuisine": "Cuisine Type",
-                    "address": "Restaurant Address",
-                    "rating": 4.5,
-                    "cost": "$30"
-                }}
-            ],
-            
-            "budget": 
-            {{
-                "hotel": "$1000",
-                "food": "$300",
-                "transportation": "$200",
-                "activities": "$400",
-                "shopping": "$150",
-                "emergencies": "$100",
-                "souvenirs": "$100",
-                "total": "$2150",
-                "remaining_budget": "$850"
-            }}
-            
-            "tips": 
-            [
-                "Tip 1",
-                "Tip 2",
-                "Tip 3",
-                "Tip 4",
-                "Tip 5"
-            ]
-        }}
-        
-        IMPORTANT:
-        1. Ensure that the JSON is valid and properly formatted.
-        2. Create exactly {days} days.
-        3. Give at least 8 famous places with their details.
-        4. Famous places should be relevant to the country and interests provided, and must exist.
-        5. Latitude and longitude should be accurate for each famous place, or close approximation.
-        6. Include famous tourist attractions, historical sites, cultural experiences, and natural wonders.
-        7. Include local food recommendations with cuisine type, address, rating, and cost.
-        8. Provide best places to visit for each day, including morning, afternoon, and evening plans, along with transportation.
-        10. Provide a budget breakdown for the entire trip, including hotel, food, transportation, activities, shopping, emergencies, and souvenirs.
+
+        Requirements:
+        1. Create exactly {days} itinerary days, numbered 1 through {days}.
+        2. Give at least 8 famous places with accurate or closely-approximated
+           latitude/longitude.
+        3. Famous places must be real, relevant to the country and interests given.
+        4. Include historical sites, cultural experiences, and natural wonders
+           where relevant to the interests.
+        5. Include local food recommendations with cuisine type, address, rating (0-5),
+           and estimated cost.
+        6. Each itinerary day needs morning/afternoon/evening plans, a food note,
+           and transportation guidance.
+        7. Provide a budget breakdown (hotel, food, transportation, activities,
+           shopping, emergencies, souvenirs) whose line items sum to the total,
+           and keep the total within the stated travel budget where realistic.
         """
-        
+
     try:
         models = _available_configured_models()
     except Exception as error:
@@ -241,33 +273,46 @@ def create_travel_plan(country, days, budget, interests, weather=None):
             "set GEMINI_FALLBACK_MODEL to a second supported model."
         )
 
-    last_error = None
+    config = types.GenerateContentConfig(
+        response_mime_type="application/json",
+        response_schema=TravelPlan,
+        max_output_tokens=MAX_OUTPUT_TOKENS,
+        http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS),
+    )
+
+    last_error: Optional[Exception] = None
     for model in models:
-        for attempt in range(3):
-            # ERROR HANDLING
+        for attempt in range(1, MAX_ATTEMPTS_PER_MODEL + 1):
             try:
-                print(f" using model: {model} (Attempt {attempt + 1})")
+                logger.info("Requesting plan from %s (attempt %d)", model, attempt)
                 response = client.models.generate_content(
                     model=model,
                     contents=prompt,
-                    # max_output_tokens=200000,
-                    # temperature=1,
+                    config=config,
                 )
 
-                text = response.text.strip()
+                # The SDK parses response.parsed for us when response_schema
+                # is a pydantic model; fall back to manual parsing if needed.
+                parsed = getattr(response, "parsed", None)
+                if isinstance(parsed, TravelPlan):
+                    return parsed
+                return TravelPlan.model_validate_json(response.text)
 
-                # REMOVING MARKDOWN CODE BLOCKS
-                text = text.replace("```json", "")
-                text = text.replace("```", "")
-                text = text.strip()
+            except ValidationError as error:
+                # Schema violation from the model output — retrying the same
+                # model with the same prompt rarely helps, but a different
+                # model might do better, so don't burn all attempts here.
+                last_error = error
+                logger.warning("Response from %s failed schema validation: %s", model, error)
+                break
 
-                return validate_travel_plan(json.loads(text))
-
-            except Exception as e:
-                last_error = e
-                print(f"Error with model {model} on attempt {attempt + 1}: {e}")
-                time.sleep(3)  # Wait before retrying
-                continue
+            except Exception as error:
+                last_error = error
+                if not _is_retryable(error) or attempt == MAX_ATTEMPTS_PER_MODEL:
+                    logger.warning("Non-retryable (or exhausted) error from %s: %s", model, error)
+                    break
+                logger.warning("Retryable error from %s (attempt %d): %s", model, attempt, error)
+                time.sleep(RETRY_DELAY_SECONDS)
 
     raise TravelPlanGenerationError(
         "Gemini could not generate a valid travel plan with the available models "
@@ -276,7 +321,11 @@ def create_travel_plan(country, days, budget, interests, weather=None):
     ) from last_error
 
 
-def get_location_weather(location):
+# --------------------------------------------------------------------------
+# External data (weather, images)
+# --------------------------------------------------------------------------
+
+def get_location_weather(location: str) -> Optional[dict]:
     """Return local time and current temperature for a location using Open-Meteo."""
     geocoding_url = "https://geocoding-api.open-meteo.com/v1/search"
     forecast_url = "https://api.open-meteo.com/v1/forecast"
@@ -313,101 +362,151 @@ def get_location_weather(location):
             "timezone": forecast.get("timezone", match.get("timezone", "local time")),
         }
     except (KeyError, TypeError, ValueError, requests.RequestException) as error:
-        print(f"Weather error: {error}")
+        logger.warning("Weather lookup failed: %s", error)
         return None
 
 
-def get_place_image(place, country):
-    """GETS THE IMAGE OF A PLACE USING GOOGLE SEARCH API"""
-    
+def get_place_image(place: str, country: str) -> Optional[str]:
+    """Look up a thumbnail image for a place via the Wikipedia search API."""
     url = "https://en.wikipedia.org/w/api.php"
-    
     params = {
         "action": "query",
         "format": "json",
         "generator": "search",
         "gsrsearch": f"{place}, {country}",
         "gsrlimit": 1,
-        "prop": "pageimages | info",
+        "prop": "pageimages|info",
         "inprop": "url",
-        "titles": f"{place}, {country}",
-        "pithumbsize": 500
+        "pithumbsize": 500,
     }
-    
-    headers = {"User-Agent": "AI-Travel-Planner"}
-    
+    headers = {"User-Agent": "AI-Travel-Planner/1.0 (contact: set-your-contact-here)"}
+
     try:
-        
         response = requests.get(url, params=params, headers=headers, timeout=10)
-        data = response.json()
-        
-        pages = data.get("query", {}).get("pages", {})
-        
+        response.raise_for_status()
+        pages = response.json().get("query", {}).get("pages", {})
         for page in pages.values():
             thumbnail = page.get("thumbnail", {})
             if thumbnail:
                 return thumbnail["source"]
-            
-    except Exception as e:
-        print(f"Image error: {e}")
-        
+    except (requests.RequestException, ValueError, KeyError) as error:
+        logger.warning("Image lookup for %r failed: %s", place, error)
+
     return None
 
 
-def _validate_text_input(value, field_name, max_length):
+# --------------------------------------------------------------------------
+# Input validation (raises real exceptions, not `assert`)
+# --------------------------------------------------------------------------
+
+def _validate_text_input(value: str, field_name: str, max_length: int) -> None:
     allowed_characters = set(" -&,.'()")
-    assert value, f"Please enter a valid {field_name}."
-    assert len(value) <= max_length, f"{field_name.title()} must be {max_length} characters or fewer."
-    assert all(character.isalpha() or character in allowed_characters for character in value), (
-        f"{field_name.title()} must contain letters and common separators only.")
+    if not value:
+        raise InputValidationError(f"Please enter a valid {field_name}.")
+    if len(value) > max_length:
+        raise InputValidationError(f"{field_name.title()} must be {max_length} characters or fewer.")
+    if not all(ch.isalpha() or ch in allowed_characters for ch in value):
+        raise InputValidationError(f"{field_name.title()} must contain letters and common separators only.")
 
 
-def _validate_numeric_input(value, field_name, max_length):
-    assert value, f"Please enter a valid {field_name}."
-    assert len(value) <= max_length, f"{field_name.title()} must contain {max_length} digits or fewer."
-    assert all("0" <= character <= "9" for character in value), (f"{field_name.title()} must contain digits only.")
-    assert int(value) > 0, f"Please enter a positive {field_name}."
+def _validate_numeric_input(value: str, field_name: str, max_length: int) -> None:
+    if not value:
+        raise InputValidationError(f"Please enter a valid {field_name}.")
+    if len(value) > max_length:
+        raise InputValidationError(f"{field_name.title()} must contain {max_length} digits or fewer.")
+    if not value.isdigit():
+        raise InputValidationError(f"{field_name.title()} must contain digits only.")
+    if int(value) <= 0:
+        raise InputValidationError(f"Please enter a positive {field_name}.")
 
 
-def main():
-    """Run the interactive travel planner CLI."""
+# --------------------------------------------------------------------------
+# Map rendering
+# --------------------------------------------------------------------------
+
+def build_map(plan: TravelPlan, output_path: str = "travel_map.html") -> str:
+    """Build the Folium map, save it to disk, and return the file path."""
+    places = plan.famous_places
+    avg_lat = sum(place.latitude for place in places) / len(places)
+    avg_lon = sum(place.longitude for place in places) / len(places)
+    travel_map = folium.Map(location=[avg_lat, avg_lon], zoom_start=6, tiles="OpenStreetMap")
+
+    for index, place in enumerate(places, 1):
+        # Escape everything the model generated before it goes into HTML.
+        safe_name = html.escape(place.name)
+        safe_description = html.escape(place.description)
+        safe_best_time = html.escape(place.best_time)
+        safe_cost = html.escape(place.cost)
+        safe_activities = "".join(f"<li>{html.escape(a)}</li>" for a in place.activities)
+
+        popup_content = f"""
+        <div style="width: 300px;">
+          <h3>📍 {safe_name}</h3>
+          <p>{safe_description}</p>
+          <p><b>Cost:</b> {safe_cost}</p>
+          <p><b>Best Time to Visit:</b> {safe_best_time}</p>
+          <p><b>Activities:</b></p>
+          <ul>{safe_activities}</ul>
+        </div>
+        """
+        folium.Marker(
+            location=[place.latitude, place.longitude],
+            popup=folium.Popup(popup_content, max_width=300),
+            tooltip=f"📍 {index}. {safe_name}",
+            icon=folium.Icon(color="blue", icon="info-sign"),
+        ).add_to(travel_map)
+
+    travel_map.save(output_path)
+    return output_path
+
+
+# --------------------------------------------------------------------------
+# CLI
+# --------------------------------------------------------------------------
+
+def _print_header(title: str) -> None:
+    print("\n" + "=" * 70)
+    print(title)
+    print("=" * 70)
+
+
+def main() -> None:
     print("=" * 70)
     print(" ✈️ AI TRAVEL PLANNER")
     print("=" * 70)
-    
-    # USER INPUTS
 
-    country = input("Please enter the country you want to visit: ").strip()
-    _validate_text_input(country, "country name", 50)
+    try:
+        country = input("Please enter the country you want to visit: ").strip()
+        _validate_text_input(country, "country name", 50)
 
-    days_input = input("How many days will you be traveling for? ").strip()
-    _validate_numeric_input(days_input, "number of days", 2)
-    days = int(days_input)
+        days_input = input("How many days will you be traveling for? ").strip()
+        _validate_numeric_input(days_input, "number of days", 2)
+        days = int(days_input)
 
-    budget_input = input("What is your travel budget? ").strip()
-    _validate_numeric_input(budget_input, "budget", 6)
-    budget = float(budget_input)
+        budget_input = input("What is your travel budget? ").strip()
+        _validate_numeric_input(budget_input, "budget", 6)
+        budget = float(budget_input)
 
-    interests = input("What are your interests (e.g., history, nature, food)? ").strip()
-    _validate_text_input(interests, "interests", 100)
-    
-    # OUTPUT
-    print("\n")
-    print("=" * 70)
-    print("GENERATING TRAVEL PLAN...")
-    print("=" * 70)
+        interests = input("What are your interests (e.g., history, nature, food)? ").strip()
+        _validate_text_input(interests, "interests", 100)
+    except InputValidationError as error:
+        print(f"\n❌ {error}")
+        return
+
+    _print_header("GENERATING TRAVEL PLAN...")
 
     weather = get_location_weather(country)
-    plan = create_travel_plan(country, days, budget, interests, weather)
 
-    print("\n")
-    print("=" * 70)
-    print("\n ℹ️ BASIC INFORMATION:")
-    print("=" * 70)
-    print(f" 🌏 {country.upper()}")
-    print("=" * 70)
+    try:
+        plan = create_travel_plan(country, days, budget, interests, weather)
+    except TravelPlannerError as error:
+        print(f"\n❌ Could not generate a travel plan: {error}")
+        return
+
+    _print_header(f" 🌏 {country.upper()}")
     print("\n 📝 OVERVIEW:")
-    print(plan["overview"])
+    print(plan.overview)
+
     print("\nℹ️ LOCAL TIME & TEMPERATURE:")
     if weather:
         print(f" 🕒 Local time: {weather['local_time']} ({weather['timezone']})")
@@ -415,112 +514,58 @@ def main():
         print(f" 🌤️ Weather code: {weather['weather_code']}")
     else:
         print(" Weather data is currently unavailable.")
-    print("\n")
-    print("=" * 70)
-    print("🖼️ IMAGES OF FAMOUS PLACES")
-    print("=" * 70)
 
-    for place in plan["famous_places"]:
-        name = place["name"]
-        print(f" 🧭 {name}")
-        place["image"] = get_place_image(name, country)
-
-    print("\n")
-    print("=" * 70)
-    print("📍 FAMOUS PLACES")
-    print("=" * 70)
-
-    for index, place in enumerate(plan["famous_places"], 1):
-        if place.get("image"):
-            display(HTML(f'<img src="{place["image"]}" alt="{place["name"]}" width="400">'))
-
-        print(f"    Cost: {place['cost']}")
-        print(f"\n {index}. 📍 {place['name']}")
-        print(f"Description: {place['description']}")
-        print(f"Latitude: {place['latitude']}, Longitude: {place['longitude']}")
-        print(f"Best Time to Visit: {place['best_time']}")
-        print("Activities:")
-        for activity in place["activities"]:
+    _print_header("📍 FAMOUS PLACES")
+    for index, place in enumerate(plan.famous_places, 1):
+        image_url = get_place_image(place.name, country)
+        print(f"\n {index}. 📍 {place.name}")
+        if image_url:
+            print(f"    Image: {image_url}")
+        print(f"    Cost: {place.cost}")
+        print(f"    Description: {place.description}")
+        print(f"    Latitude: {place.latitude}, Longitude: {place.longitude}")
+        print(f"    Best Time to Visit: {place.best_time}")
+        print("    Activities:")
+        for activity in place.activities:
             print(f"        - {activity}")
 
-        if place.get("image"):
-            try:
-                display(Image(url=place["image"], width=400))
-            except Exception as error:
-                print(f"Error displaying image for {place['name']}: {error}")
+    _print_header("🗺️ GENERATING INTERACTIVE MAP")
+    map_path = build_map(plan)
+    print(f" Map saved to: {map_path}")
 
-    print("\n")
-    print("=" * 70)
-    print("🗺️ GENERATE INTERACTIVE MAP")
-    print("=" * 70)
+    _print_header("📅 COMPLETE DAY-BY-DAY ITINERARY")
+    for day in plan.itinerary:
+        print(f"\n--- DAY {day.day}: {day.title} ---")
+        print(f"\n🌄 MORNING\n{day.morning}")
+        print(f"\n☀️ AFTERNOON\n{day.afternoon}")
+        print(f"\n🌇 EVENING\n{day.evening}")
+        print(f"\n🍽️ FOOD\n{day.food}")
+        print(f"\n🚌 TRANSPORTATION\n{day.transportation}")
+        print(f"\n💰 COST\n{day.cost}")
 
-    places = plan["famous_places"]
-    avg_lat = sum(place["latitude"] for place in places) / len(places)
-    avg_lon = sum(place["longitude"] for place in places) / len(places)
-    travel_map = folium.Map(location=[avg_lat, avg_lon], zoom_start=6, tiles="OpenStreetMap")
+    _print_header("🥣 MUST-TRY FOOD")
+    for food in plan.food:
+        print(f"🍴 {food.name} ({food.cuisine}) — {food.address}")
+        print(f"    Rating: {food.rating}/5 | Cost: {food.cost}")
 
-    for index, place in enumerate(places, 1):
-        popup_content = f"""
-        <div style="width: 300px;">
-          <p>Cost:</b> {place['cost']}</p>
-          <h3>📍 {place['name']}</h3>
-          <p>{place['description']}</p>
-          <p>Best Time to Visit:</b> {place['best_time']}</p>
-          <p>Activities:</p>
-        </div>
-        """
-        folium.Marker(
-            location=[place["latitude"], place["longitude"]],
-            popup=folium.Popup(popup_content, max_width=300),
-            tooltip=f" 📍 {index}. {place['name']}",
-            icon=folium.Icon(color="blue", icon="info-sign"),
-        ).add_to(travel_map)
-
-    print("\n")
-    print("=" * 70)
-    print("📅 COMPLETE DAY-BY-DAY ITINERARY")
-    print("=" * 70)
-
-    for day in plan["itinerary"]:
-        print(f"\n{'=' * 70}")
-        print(f"DAY {day['day']}")
-        print(f"TITLE {day['title']}")
-        print(f"\n{'=' * 70}")
-        for section, label in (("morning", "🌄 MORNING"), ("afternoon", "☀️ AFTERNOON"),
-                               ("evening", "🌇 EVENING"), ("food", "🍽️ FOOD"),
-                               ("transportation", "🚌 TRANSPORTATION"), ("cost", "💰 COST")):
-            print(f"\n{label}")
-            print(day[section])
-
-    print("\n")
-    print("=" * 70)
-    print("🥣 MUST-TRY FOOD")
-    print("=" * 70)
-    for food in plan["food"]:
-        print(f"🍴 {food}")
-
-    print("\n")
-    print("=" * 70)
-    print("💰 TRAVEL BUDGET BREAKDOWN")
-    print("=" * 70)
-    travel_budget = plan["budget"]
+    _print_header("💰 TRAVEL BUDGET BREAKDOWN")
+    b = plan.budget
     for category in ("hotel", "food", "transportation", "activities", "shopping", "emergencies", "souvenirs"):
-        print(f"\n {category.upper()}: {travel_budget[category]}")
-    print("=" * 70)
-    print(f"\n TOTAL: {travel_budget['total']}")
-    print(f"\n REMAINING BUDGET: {travel_budget['remaining_budget']}")
+        print(f" {category.upper()}: {getattr(b, category)}")
+    print(f"\n TOTAL: {b.total}")
+    print(f" REMAINING BUDGET: {b.remaining_budget}")
 
-    print("\n")
-    print("=" * 70)
-    print("💡 TRAVEL TIPS")
-    print("=" * 70)
-    for tip in plan["tips"]:
+    warnings = check_budget_consistency(plan, budget)
+    if warnings:
+        print("\n⚠️ BUDGET WARNINGS:")
+        for warning in warnings:
+            print(f" - {warning}")
+
+    _print_header("💡 TRAVEL TIPS")
+    for tip in plan.tips:
         print(f"✔️ {tip}")
 
-    print("\n")
-    print("=" * 70)
-    print("🎉 TRAVEL PLAN COMPLETE!")
-    print("=" * 70)
+    _print_header("🎉 TRAVEL PLAN COMPLETE!")
 
 
 if __name__ == "__main__":

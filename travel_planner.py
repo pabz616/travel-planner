@@ -18,6 +18,8 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field, ValidationError
 
+from test_data.data import CURRENT_MODEL, FALLBACK_MODEL
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger("travel_planner")
 
@@ -61,8 +63,8 @@ class TravelPlanGenerationError(TravelPlannerError):
 class FamousPlace(BaseModel):
     name: str
     description: str
-    latitude: float
-    longitude: float
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
     activities: list[str]
     best_time: str
     cost: str
@@ -83,7 +85,7 @@ class FoodRecommendation(BaseModel):
     name: str
     cuisine: str
     address: str
-    rating: float
+    rating: float = Field(ge=0, le=5)
     cost: str
 
 
@@ -126,8 +128,8 @@ def _supports_content_generation(model) -> bool:
 
 
 def _configured_models() -> list[str]:
-    configured = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
-    fallback = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite")
+    configured = os.getenv("GEMINI_MODEL", CURRENT_MODEL)
+    fallback = os.getenv("GEMINI_FALLBACK_MODEL", FALLBACK_MODEL)
     return list(dict.fromkeys(m.strip() for m in (configured, fallback) if m.strip()))
 
 
@@ -213,6 +215,14 @@ def _is_retryable(error: Exception) -> bool:
     return any(marker in text for marker in _RETRYABLE_ERROR_MARKERS)
 
 
+def _validate_itinerary_length(plan: TravelPlan, expected_days: int) -> TravelPlan:
+    if len(plan.itinerary) != expected_days:
+        raise ValueError(
+            f"Expected {expected_days} itinerary days, got {len(plan.itinerary)}."
+        )
+    return plan
+
+
 def create_travel_plan(
     country: str,
     days: int,
@@ -295,10 +305,11 @@ def create_travel_plan(
                 # is a pydantic model; fall back to manual parsing if needed.
                 parsed = getattr(response, "parsed", None)
                 if isinstance(parsed, TravelPlan):
-                    return parsed
-                return TravelPlan.model_validate_json(response.text)
+                    return _validate_itinerary_length(parsed, days)
+                plan = TravelPlan.model_validate_json(response.text)
+                return _validate_itinerary_length(plan, days)
 
-            except ValidationError as error:
+            except (ValidationError, ValueError) as error:
                 # Schema violation from the model output — retrying the same
                 # model with the same prompt rarely helps, but a different
                 # model might do better, so don't burn all attempts here.

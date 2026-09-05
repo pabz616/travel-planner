@@ -25,7 +25,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from travel_planner import TravelPlan, create_travel_plan
+from travel_planner import TravelPlan
 
 
 def run_checks(plan: TravelPlan, expected_days: int) -> list[str]:
@@ -64,6 +64,8 @@ def run_checks(plan: TravelPlan, expected_days: int) -> list[str]:
 
 
 def main() -> int:
+    from travel_planner import create_travel_plan
+
     parser = argparse.ArgumentParser(description="Smoke-test live travel plan generation.")
     parser.add_argument("--country", default="Japan")
     parser.add_argument("--days", type=int, default=5)

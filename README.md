@@ -22,6 +22,7 @@ src. `https://pythonclcoding.substack.com/p/ai-powered-travel-planner-in-python?
 Use the following libraries:
 
 🔹 Google genai (Gemini), requests, json, time, folium, IPython
+🔹 Latest Gemini models (> 3.5-Flash-lite)
 🔹 Wikipedia
 
 The planner uses Open-Meteo for the selected location's local time and current
@@ -39,6 +40,10 @@ is available, the planner reports the configuration change required.
 Run the script `python3 planner.py`
 When the prompt is engaged, it will ask for specific information like, "place to visit," "number of days," and "travel budget"
 
+### DIAGRAM
+<img width="974" height="751" alt="Screenshot 2026-09-05 at 6 33 36 PM" src="https://github.com/user-attachments/assets/6b878e9b-633c-4f52-9e4d-5158edbb1d48" />
+
+
 ### RESULTS
 
 If the location entered is valid, the output will look something like the following (snippet):
@@ -49,6 +54,7 @@ If the location entered is valid, the output will look something like the follow
 The file `planner.py` has been tested for the following:
 
 - Missing API key validation
+- Existence of Country entered
 - No input validation for days, budget, and interests
 - Prompt template contains malformed JSON fragments
 - Assumes LLM will always return valid JSON with the exact schema
@@ -62,3 +68,4 @@ The file `planner.py` has been tested for the following:
 - CLI input prompts are not user-friendly for invalid or blank values
 - Budget and itinerary outputs are not cross-checked
 - Secrets are handled implicitly via environment variables, but there is no safeguard or clear error if missing
+- ... and so much more

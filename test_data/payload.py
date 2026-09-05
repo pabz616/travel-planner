@@ -1,5 +1,22 @@
+from .data import BUDGET, COUNTRY, DAYS
+
+
+def _format_budget(amount):
+    return f"${amount:,.0f}"
+
+
+budget_parts = {
+    "hotel": round(BUDGET * 0.40),
+    "food": round(BUDGET * 0.20),
+    "transportation": round(BUDGET * 0.10),
+    "activities": round(BUDGET * 0.15),
+    "shopping": round(BUDGET * 0.05),
+    "emergencies": round(BUDGET * 0.05),
+}
+budget_parts["souvenirs"] = BUDGET - sum(budget_parts.values())
+
 payload = {
-    "country": "France",
+    "country": COUNTRY,
     "overview": "A classic trip.",
     "famous_places": [
         {
@@ -16,7 +33,7 @@ payload = {
     "itinerary": [
         {
             "day": day,
-            "title": f"Explore France - day {day}",
+            "title": f"Explore {COUNTRY} - day {day}",
             "morning": "Visit a landmark.",
             "afternoon": "Explore the city.",
             "evening": "Enjoy a local meal.",
@@ -24,27 +41,21 @@ payload = {
             "transportation": "Walk or use public transit.",
             "cost": "$100",
         }
-        for day in range(1, 4)
+        for day in range(1, DAYS + 1)
     ],
     "food": [
         {
             "name": "Local dish",
             "cuisine": "French",
-            "address": "Paris, France",
+            "address": f"Central market, {COUNTRY}",
             "rating": 4.5,
             "cost": "$20",
         }
     ],
     "budget": {
-        "hotel": "$400",
-        "food": "$200",
-        "transportation": "$100",
-        "activities": "$150",
-        "shopping": "$50",
-        "emergencies": "$50",
-        "souvenirs": "$50",
-        "total": "$1000",
-        "remaining_budget": "$500",
+        **{category: _format_budget(amount) for category, amount in budget_parts.items()},
+        "total": _format_budget(BUDGET),
+        "remaining_budget": "$0",
     },
     "tips": [],
 }

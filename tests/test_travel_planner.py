@@ -98,7 +98,7 @@ def test_create_travel_plan_rejects_unsupported_models(monkeypatch):
     ])
 
     with pytest.raises(planner.ModelAvailabilityError, match="None of the configured"):
-        planner.create_travel_plan("France", 3, 1500, "food")
+        planner.create_travel_plan(COUNTRY, DAYS, BUDGET, INTERESTS)
 
 
 def test_create_travel_plan_uses_available_fallback(monkeypatch):
@@ -126,7 +126,7 @@ def test_create_travel_plan_returns_json(monkeypatch):
 
     assert isinstance(result, planner.TravelPlan)
     assert result.country == COUNTRY
-    assert result.budget.total == "$1000"
+    assert result.budget.total == f"${BUDGET:,}"
 
 
 def test_create_travel_plan_returns_sdk_parsed_plan(monkeypatch):
@@ -154,7 +154,7 @@ def test_create_travel_plan_rejects_wrong_itinerary_length(monkeypatch, itinerar
     with pytest.raises(planner.TravelPlanGenerationError) as error:
         planner.create_travel_plan(COUNTRY, DAYS, BUDGET, INTERESTS)
 
-    assert "Expected 3 itinerary days" in str(error.value.__cause__)
+    assert f"Expected {DAYS} itinerary days" in str(error.value.__cause__)
 
 
 def test_itinerary_length_validator_accepts_requested_day_count():
@@ -315,51 +315,105 @@ def test_create_travel_plan_uses_next_model_after_schema_failure(monkeypatch):
 
 
 # TESTS FOR COUNTRY INPUT VALIDATION
-def test_validate_text_input_rejects_empty_value():
+def test_create_travel_plan_validate_country_exists(monkeypatch):
+    planner = load_planner()
+
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"results": [{"name": "France", "country": "France"}]}
+
+    monkeypatch.setattr(planner.requests, "get", lambda *args, **kwargs: FakeResponse())
+
+    planner._validate_country_exists("France")
+
+
+def test_create_travel_plan_validate_country_accepts_territory_name(monkeypatch):
+    planner = load_planner()
+
+    monkeypatch.setattr(
+        planner.requests,
+        "get",
+        lambda *args, **kwargs: pytest.fail("Known countries should use the local list"),
+    )
+
+    planner._validate_country_exists("Puerto Rico")
+
+
+def test_create_travel_plan_validate_country_rejects_unknown_country(monkeypatch):
+    planner = load_planner()
+
+    class FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"results": []}
+
+    monkeypatch.setattr(planner.requests, "get", lambda *args, **kwargs: FakeResponse())
+
+    with pytest.raises(planner.InputValidationError, match="was not found"):
+        planner._validate_country_exists("Atlantis")
+
+
+def test_create_travel_plan_validate_country_rejects_empty_value():
     planner = load_planner()
 
     with pytest.raises(planner.InputValidationError, match="Please enter a valid country name"):
         planner._validate_text_input("", "country name", 50)
 
 
-def test_validate_text_input_rejects_values_over_max_length():
+def test_create_travel_plan_validate_country_rejects_values_over_max_length():
     planner = load_planner()
-
     with pytest.raises(planner.InputValidationError, match="Country Name must be 50 characters or fewer"):
         planner._validate_text_input("F" * 51, "country name", 50)
 
 
-def test_validate_text_input_rejects_illegal_characters():
+def test_create_travel_plan_validate_country_rejects_illegal_characters():
     planner = load_planner()
 
     with pytest.raises(planner.InputValidationError, match="Country Name must contain letters and common separators only"):
         planner._validate_text_input("<h1>", "country name", 50)
 
 
+def test_create_travel_plan_validate_country_accepts_quoted_alias():
+    planner = load_planner()
+
+    planner._validate_text_input('Eswatini (fmr. "Swaziland")', "country name", 50)
+
+
 @pytest.mark.parametrize("value", ["line\nfeed", "null\x00byte", "\x1b[31mred"])
-def test_validate_text_input_rejects_control_characters(value):
+def test_create_travel_plan_validate_country_rejects_control_characters(value):
     planner = load_planner()
 
     with pytest.raises(planner.InputValidationError):
         planner._validate_text_input(value, "country name", 50)
 
 
-def test_validate_text_input_accepts_supported_separators_and_unicode_letters():
+def test_create_travel_plan_validate_country_accepts_supported_separators_and_unicode_letters():
     planner = load_planner()
 
     planner._validate_text_input("Côte d'Ivoire (West)", "country name", 50)
 
 
-def test_validate_text_input_accepts_exact_maximum_length():
+def test_create_travel_plan_validate_country_accepts_exact_maximum_length():
     planner = load_planner()
 
     planner._validate_text_input("A" * 50, "country name", 50)
 
 
-def test_validate_numeric_input_accepts_positive_digits():
+def test_create_travel_plan_validate_days_accepts_positive_digits():
     planner = load_planner()
 
     planner._validate_numeric_input("7", "number of days", 2)
+
+
+def test_create_travel_plan_validate_days_accepts_365_days():
+    planner = load_planner()
+
+    planner._validate_numeric_input("365", "number of days", 3)
 
 
 @pytest.mark.parametrize("value, expected_message", [
@@ -368,23 +422,22 @@ def test_validate_numeric_input_accepts_positive_digits():
     ("-3", "Number Of Days must contain digits only"),
     ("not-a-number", "Number Of Days must contain 2 digits or fewer"),
 ])
-def test_validate_numeric_input_rejects_invalid_values(value, expected_message):
+def test_create_travel_plan_validate_days_rejects_invalid_values(value, expected_message):
     planner = load_planner()
 
     with pytest.raises(planner.InputValidationError, match=expected_message):
         planner._validate_numeric_input(value, "number of days", 2)
 
 
-def test_validate_numeric_input_rejects_values_over_max_length():
+def test_create_travel_plan_validate_budget_rejects_values_over_max_length():
     planner = load_planner()
 
     with pytest.raises(planner.InputValidationError, match="Budget must contain 6 digits or fewer"):
         planner._validate_numeric_input("1000000", "budget", 6)
 
 
-def test_validate_numeric_input_accepts_exact_maximum_length():
+def test_create_travel_plan_validate_budget_accepts_exact_maximum_length():
     planner = load_planner()
-
     planner._validate_numeric_input("999999", "budget", 6)
 
 
@@ -399,14 +452,14 @@ def test_create_travel_plan_rejects_nonpositive_days(monkeypatch, days):
 
 
 # TESTS FOR BUDGET CONSISTENCY
-def test_check_budget_consistency_returns_no_warnings_for_consistent_budget():
+def test_create_travel_plan_check_budget_consistency_returns_no_warnings_for_consistent_budget():
     planner = load_planner()
     plan = planner.TravelPlan.model_validate(payload)
 
-    assert planner.check_budget_consistency(plan, 1500) == []
+    assert planner.check_budget_consistency(plan, BUDGET) == []
 
 
-def test_check_budget_consistency_reports_line_item_mismatch():
+def test_create_travel_plan_check_budget_consistency_reports_line_item_mismatch():
     planner = load_planner()
     plan_data = dict(payload)
     plan_data["budget"] = dict(payload["budget"], total="$900")
@@ -415,19 +468,22 @@ def test_check_budget_consistency_reports_line_item_mismatch():
     warnings = planner.check_budget_consistency(plan, 1500)
 
     assert len(warnings) == 1
-    assert "line items sum to $1,000.00" in warnings[0]
+    assert f"line items sum to ${BUDGET:,.2f}" in warnings[0]
 
 
-def test_check_budget_consistency_reports_total_over_stated_budget():
+def test_create_travel_plan_check_budget_consistency_reports_total_over_stated_budget():
     planner = load_planner()
     plan = planner.TravelPlan.model_validate(payload)
 
-    warnings = planner.check_budget_consistency(plan, 500)
+    stated_budget = BUDGET - 1
+    warnings = planner.check_budget_consistency(plan, stated_budget)
 
-    assert warnings == ["The plan's total ($1000) exceeds your stated budget ($500.00)."]
+    assert warnings == [
+        f"The plan's total (${BUDGET:,}) exceeds your stated budget (${stated_budget:,.2f})."
+    ]
 
 
-def test_check_budget_consistency_reports_unparseable_amount():
+def test_create_travel_plan_check_budget_consistency_reports_unparseable_amount():
     planner = load_planner()
     plan_data = dict(payload)
     plan_data["budget"] = dict(payload["budget"], food="unknown")
@@ -457,7 +513,7 @@ def test_travel_plan_generated_rejects_missing_required_field():
     ("latitude", 91),
     ("longitude", 181),
 ])
-def test_travel_plan_rejects_out_of_range_coordinates(field, value):
+def test_create_travel_plan_rejects_out_of_range_coordinates(field, value):
     planner = load_planner()
     place = dict(payload["famous_places"][0], **{field: value})
     plan_data = dict(payload, famous_places=[place, *payload["famous_places"][1:]])
@@ -467,7 +523,7 @@ def test_travel_plan_rejects_out_of_range_coordinates(field, value):
 
 
 @pytest.mark.parametrize("rating", [-0.1, 5.1])
-def test_travel_plan_rejects_out_of_range_food_rating(rating):
+def test_create_travel_plan_rejects_out_of_range_food_rating(rating):
     planner = load_planner()
     food = dict(payload["food"][0], rating=rating)
     plan_data = dict(payload, food=[food])
@@ -477,7 +533,7 @@ def test_travel_plan_rejects_out_of_range_food_rating(rating):
 
 
 # TESTS FOR GENERATED PLAN: MAP ELEMENT
-def test_get_place_image_returns_none_when_no_thumbnail_exists(monkeypatch):
+def test_create_travel_plan_get_place_image_returns_none_when_no_thumbnail_exists(monkeypatch):
     planner = load_planner()
 
     class FakeResponse:
@@ -492,7 +548,7 @@ def test_get_place_image_returns_none_when_no_thumbnail_exists(monkeypatch):
     assert planner.get_place_image("Paris", "France") is None
 
 
-def test_get_place_image_handles_http_errors(monkeypatch):
+def test_create_travel_plan_get_place_image_handles_http_errors(monkeypatch):
     planner = load_planner()
 
     def raise_error(*args, **kwargs):
@@ -503,7 +559,7 @@ def test_get_place_image_handles_http_errors(monkeypatch):
     assert planner.get_place_image("Paris", "France") is None
 
 
-def test_get_place_image_returns_thumbnail_url(monkeypatch):
+def test_create_travel_plan_get_place_image_returns_thumbnail_url(monkeypatch):
     planner = load_planner()
 
     class FakeResponse:
@@ -544,7 +600,7 @@ def test_get_place_image_uses_https_and_timeout(monkeypatch):
     assert request["kwargs"]["timeout"] == 10
 
 
-def test_get_place_image_handles_malformed_response(monkeypatch):
+def test_create_travel_plan_get_place_image_handles_malformed_response(monkeypatch):
     planner = load_planner()
 
     class FakeResponse:
@@ -560,7 +616,7 @@ def test_get_place_image_handles_malformed_response(monkeypatch):
 
 
 # TESTS FOR GENERATED PLAN: WEATHER ELEMENT
-def test_get_location_weather_returns_local_time_and_temperature(monkeypatch):
+def test_create_travel_plan_get_location_weather_returns_local_time_and_temperature(monkeypatch):
     planner = load_planner()
     responses = iter([
         FakeJsonResponse({"results": [{"latitude": 48.8566, "longitude": 2.3522}]}),
@@ -591,7 +647,7 @@ def test_get_location_weather_returns_local_time_and_temperature(monkeypatch):
     assert requests[1][1]["latitude"] == 48.8566
 
 
-def test_get_location_weather_returns_none_when_location_is_not_found(monkeypatch):
+def test_create_travel_plan_get_location_weather_returns_none_when_location_is_not_found(monkeypatch):
     planner = load_planner()
     monkeypatch.setattr(
         planner.requests,
@@ -602,7 +658,7 @@ def test_get_location_weather_returns_none_when_location_is_not_found(monkeypatc
     assert planner.get_location_weather("Unknown location") is None
 
 
-def test_get_location_weather_returns_none_on_request_failure(monkeypatch):
+def test_create_travel_plan_get_location_weather_returns_none_on_request_failure(monkeypatch):
     planner = load_planner()
 
     def fail_to_get(*args, **kwargs):
@@ -613,7 +669,7 @@ def test_get_location_weather_returns_none_on_request_failure(monkeypatch):
     assert planner.get_location_weather("France") is None
 
 
-def test_get_location_weather_returns_none_on_incomplete_forecast(monkeypatch):
+def test_create_travel_plan_get_location_weather_returns_none_on_incomplete_forecast(monkeypatch):
     planner = load_planner()
     responses = iter([
         FakeJsonResponse({"results": [{"latitude": 48.8566, "longitude": 2.3522}]}),
@@ -624,7 +680,7 @@ def test_get_location_weather_returns_none_on_incomplete_forecast(monkeypatch):
     assert planner.get_location_weather("France") is None
 
 
-def test_get_location_weather_returns_none_when_forecast_request_fails(monkeypatch):
+def test_create_travel_plan_get_location_weather_returns_none_when_forecast_request_fails(monkeypatch):
     planner = load_planner()
     geocoding_response = FakeJsonResponse(
         {"results": [{"latitude": 48.8566, "longitude": 2.3522}]}
@@ -643,7 +699,7 @@ def test_get_location_weather_returns_none_when_forecast_request_fails(monkeypat
     assert planner.get_location_weather("France") is None
 
 
-def test_get_location_weather_uses_https_and_timeouts(monkeypatch):
+def test_create_travel_plan_get_location_weather_uses_https_and_timeouts(monkeypatch):
     planner = load_planner()
     requests = []
     responses = iter([
@@ -691,10 +747,10 @@ def test_create_travel_plan_adds_weather_to_prompt(monkeypatch):
     monkeypatch.setattr(planner, "client", client)
 
     planner.create_travel_plan(
-        "France",
-        3,
-        1500,
-        "food",
+        COUNTRY,
+        DAYS,
+        BUDGET,
+        INTERESTS,
         {
             "local_time": "2026-09-03 14:30",
             "temperature_c": 22.4,
@@ -707,7 +763,7 @@ def test_create_travel_plan_adds_weather_to_prompt(monkeypatch):
     assert "temperature: 22.4 °C" in captured["prompt"]
 
 
-def test_build_map_escapes_model_generated_html(tmp_path):
+def test_create_travel_plan_build_map_escapes_model_generated_html(tmp_path):
     planner = load_planner()
     plan_data = dict(payload)
     plan_data["famous_places"] = [dict(place) for place in payload["famous_places"]]
@@ -731,7 +787,7 @@ def test_build_map_escapes_model_generated_html(tmp_path):
     assert "<script>alert('xss')</script>" not in html
 
 
-def test_build_map_propagates_output_write_failure(tmp_path):
+def test_create_travel_plan_build_map_propagates_output_write_failure(tmp_path):
     planner = load_planner()
     plan = planner.TravelPlan.model_validate(payload)
     output_path = tmp_path / "missing-directory" / "travel_map.html"
@@ -754,6 +810,7 @@ def test_main_continues_when_weather_is_unavailable(monkeypatch, capsys):
     answers = iter([COUNTRY, str(DAYS), str(BUDGET), INTERESTS])
     received = {}
     monkeypatch.setattr("builtins.input", lambda _: next(answers))
+    monkeypatch.setattr(planner, "_validate_country_exists", lambda _: None)
     monkeypatch.setattr(planner, "get_location_weather", lambda _: None)
 
     def fake_create(country, days, budget, interests, weather):
@@ -776,6 +833,7 @@ def test_main_reports_generation_failure_without_traceback(monkeypatch, capsys):
     planner = load_planner()
     answers = iter([COUNTRY, str(DAYS), str(BUDGET), INTERESTS])
     monkeypatch.setattr("builtins.input", lambda _: next(answers))
+    monkeypatch.setattr(planner, "_validate_country_exists", lambda _: None)
     monkeypatch.setattr(planner, "get_location_weather", lambda _: None)
     monkeypatch.setattr(
         planner,

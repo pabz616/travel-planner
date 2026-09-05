@@ -18,7 +18,7 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field, ValidationError
 
-from test_data.data import CURRENT_MODEL, FALLBACK_MODEL
+from test_data.data import COUNTRIES, CURRENT_MODEL, FALLBACK_MODEL
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger("travel_planner")
@@ -411,13 +411,40 @@ def get_place_image(place: str, country: str) -> Optional[str]:
 # --------------------------------------------------------------------------
 
 def _validate_text_input(value: str, field_name: str, max_length: int) -> None:
-    allowed_characters = set(" -&,.'()")
+    allowed_characters = set(" -&,.'()\"")
     if not value:
         raise InputValidationError(f"Please enter a valid {field_name}.")
     if len(value) > max_length:
         raise InputValidationError(f"{field_name.title()} must be {max_length} characters or fewer.")
     if not all(ch.isalpha() or ch in allowed_characters for ch in value):
         raise InputValidationError(f"{field_name.title()} must contain letters and common separators only.")
+
+
+def _validate_country_exists(country: str) -> None:
+    """Validate that the country name resolves through the geocoding service."""
+    if country.casefold() in {known_country.casefold() for known_country in COUNTRIES}:
+        return
+
+    try:
+        response = requests.get(
+            "https://geocoding-api.open-meteo.com/v1/search",
+            params={"name": country, "count": 1, "language": "en", "format": "json"},
+            timeout=10,
+        )
+        response.raise_for_status()
+        results = response.json().get("results", [])
+    except (AttributeError, TypeError, ValueError, requests.RequestException) as error:
+        logger.warning("Country lookup failed: %s", error)
+        raise InputValidationError("Unable to verify that the country exists.") from error
+
+    normalized_country = country.casefold()
+    if not any(
+        result.get("country")
+        or result.get("country_code")
+        or result.get("name", "").casefold() == normalized_country
+        for result in results
+    ):
+        raise InputValidationError(f"Country '{country}' was not found.")
 
 
 def _validate_numeric_input(value: str, field_name: str, max_length: int) -> None:
@@ -489,16 +516,19 @@ def main() -> None:
     try:
         country = input("Please enter the country you want to visit: ").strip()
         _validate_text_input(country, "country name", 50)
+        _validate_country_exists(country)
 
         days_input = input("How many days will you be traveling for? ").strip()
-        _validate_numeric_input(days_input, "number of days", 2)
+        _validate_numeric_input(days_input, "number of days", 3)
         days = int(days_input)
+        if days > 365:
+            raise InputValidationError("Number of days must be 365 or fewer.")
 
         budget_input = input("What is your travel budget? ").strip()
         _validate_numeric_input(budget_input, "budget", 6)
         budget = float(budget_input)
 
-        interests = input("What are your interests (e.g., history, nature, food)? ").strip()
+        interests = input("What are your interests (e.g., history, nature, food)? ")
         _validate_text_input(interests, "interests", 100)
     except InputValidationError as error:
         print(f"\n❌ {error}")

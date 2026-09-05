@@ -1,6 +1,10 @@
 {
   "cSpell.words": ["genai"],
   "chat.tools.terminal.autoApprove": {
-    "pytest": true
+    "pytest": true,
+    "/^python3 -c 'exec\\(\"\"\"import concurrent\\.futures\nimport contextlib\nimport io\nfrom pathlib import Path\nimport travel_planner\ncountries = \\[line\\.strip\\(\\) for line in Path\\(\\\\\"test_data/countries\\.txt\\\\\"\\)\\.read_text\\(encoding=\\\\\"utf-8\\\\\"\\)\\.splitlines\\(\\) if line\\.strip\\(\\)\\]\ndef check\\(country\\):\n    try:\n        travel_planner\\._validate_text_input\\(country, \\\\\"country name\\\\\", 50\\)\n        travel_planner\\._validate_country_exists\\(country\\)\n        return country, None\n    except Exception as error:\n        return country, str\\(error\\)\nwith concurrent\\.futures\\.ThreadPoolExecutor\\(max_workers=8\\) as pool:\n    results = list\\(pool\\.map\\(check, countries\\)\\)\nfailures = \\[\\(country, error\\) for country, error in results if error\\]\nprint\\(f\\\\\"Checked \\{len\\(countries\\)\\} countries through travel_planner\\.py validation\\.\\\\\"\\)\nprint\\(\\\\\"Failures:\\\\\"\\)\nfor country, error in failures:\n    print\\(f\\\\\"- \\{country\\}: \\{error\\}\\\\\"\\)\nprint\\(f\\\\\"Failed countries: \\{\\[country for country, _ in failures\\]\\}\\\\\"\\)\nraise SystemExit\\(bool\\(failures\\)\\)\n\"\"\"\\)'$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   }
 }

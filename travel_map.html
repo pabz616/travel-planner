@@ -17,7 +17,7 @@
             <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             <style>
-                #map_1a530cb55ada0bd1f3c2ad4df8c167b7 {
+                #map_1aec8cd53011cbc8582f8a53d6976025 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -54,16 +54,16 @@
 <body>
     
     
-            <div class="folium-map" id="map_1a530cb55ada0bd1f3c2ad4df8c167b7" ></div>
+            <div class="folium-map" id="map_1aec8cd53011cbc8582f8a53d6976025" ></div>
         
 </body>
 <script>
     
     
-            var map_1a530cb55ada0bd1f3c2ad4df8c167b7 = L.map(
-                "map_1a530cb55ada0bd1f3c2ad4df8c167b7",
+            var map_1aec8cd53011cbc8582f8a53d6976025 = L.map(
+                "map_1aec8cd53011cbc8582f8a53d6976025",
                 {
-                    center: [18.428824999999996, -65.9759625],
+                    center: [18.4246, -64.63889999999999],
                     crs: L.CRS.EPSG3857,
                     ...{
   "zoom": 6,
@@ -78,7 +78,7 @@
 
         
     
-            var tile_layer_3f038efd54f44bab6d2da02a8c225b6e = L.tileLayer(
+            var tile_layer_c523ce69c0b5310117ce400f5cd4ee08 = L.tileLayer(
                 "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
                 {
   "minZoom": 0,
@@ -95,65 +95,17 @@
             );
         
     
-            tile_layer_3f038efd54f44bab6d2da02a8c225b6e.addTo(map_1a530cb55ada0bd1f3c2ad4df8c167b7);
+            tile_layer_c523ce69c0b5310117ce400f5cd4ee08.addTo(map_1aec8cd53011cbc8582f8a53d6976025);
         
     
-            var marker_7374d157d45d6c4101aa3238e057744b = L.marker(
-                [18.4682, -66.1186],
+            var marker_33bee2533d8460cc67c15ac3a240e8da = L.marker(
+                [18.4283, -64.6394],
                 {
 }
-            ).addTo(map_1a530cb55ada0bd1f3c2ad4df8c167b7);
+            ).addTo(map_1aec8cd53011cbc8582f8a53d6976025);
         
     
-            var icon_1f8bc678972b08331bf6989985c3210c = L.AwesomeMarkers.icon(
-                {
-  "markerColor": "blue",
-  "iconColor": "white",
-  "icon": "info-sign",
-  "prefix": "glyphicon",
-  "extraClasses": "fa-rotate-0",
-}
-            );
-        
-    
-        var popup_2f9451cfcdec0abd79377349c30ae7f6 = L.popup({
-  "maxWidth": 300,
-});
-
-        
-            
-                var html_eabd98d2a6728bb3191912052f55680f = $(`<div id="html_eabd98d2a6728bb3191912052f55680f" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 San Felipe del Morro Castle</h3>           <p>An iconic 16th-century citadel offering panoramic ocean views and deep military history.</p>           <p><b>Cost:</b> $10</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Sightseeing</li><li>Kite flying</li><li>Photography</li></ul>         </div>         </div>`)[0];
-                popup_2f9451cfcdec0abd79377349c30ae7f6.setContent(html_eabd98d2a6728bb3191912052f55680f);
-            
-        
-
-        marker_7374d157d45d6c4101aa3238e057744b.bindPopup(popup_2f9451cfcdec0abd79377349c30ae7f6)
-        ;
-
-        
-    
-    
-            marker_7374d157d45d6c4101aa3238e057744b.bindTooltip(
-                `<div>
-                     📍 1. San Felipe del Morro Castle
-                 </div>`,
-                {
-  "sticky": true,
-}
-            );
-        
-    
-                marker_7374d157d45d6c4101aa3238e057744b.setIcon(icon_1f8bc678972b08331bf6989985c3210c);
-            
-    
-            var marker_0d05471c2b0b9b4e445cd2a8fcb4f894 = L.marker(
-                [18.4655, -66.1158],
-                {
-}
-            ).addTo(map_1a530cb55ada0bd1f3c2ad4df8c167b7);
-        
-    
-            var icon_7d892c4759f550037839d3101f2119ad = L.AwesomeMarkers.icon(
+            var icon_0ec13912d1f4d054d4b356c318412401 = L.AwesomeMarkers.icon(
                 {
   "markerColor": "blue",
   "iconColor": "white",
@@ -164,26 +116,26 @@
             );
         
     
-        var popup_d49e4a9f5beaa228a489f1e4df504851 = L.popup({
+        var popup_9c86ef8109302451144794ce7dec7b6c = L.popup({
   "maxWidth": 300,
 });
 
         
             
-                var html_b9fce6ddca42fda021e4ae5db25f2136 = $(`<div id="html_b9fce6ddca42fda021e4ae5db25f2136" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 La Fortaleza</h3>           <p>The current official residence of the Governor of Puerto Rico and the oldest executive mansion in continuous use in the Western Hemisphere.</p>           <p><b>Cost:</b> $5</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Guided tours</li><li>Historical walk</li></ul>         </div>         </div>`)[0];
-                popup_d49e4a9f5beaa228a489f1e4df504851.setContent(html_b9fce6ddca42fda021e4ae5db25f2136);
+                var html_7225ccc9eba3f53466561148feedf801 = $(`<div id="html_7225ccc9eba3f53466561148feedf801" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Cane Garden Bay</h3>           <p>A picturesque crescent-shaped bay known for its lively beach bars, calm waters, and excellent local seafood.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Morning to Sunset</p>           <p><b>Activities:</b></p>           <ul><li>Swimming</li><li>Beach dining</li><li>Listening to live music</li></ul>         </div>         </div>`)[0];
+                popup_9c86ef8109302451144794ce7dec7b6c.setContent(html_7225ccc9eba3f53466561148feedf801);
             
         
 
-        marker_0d05471c2b0b9b4e445cd2a8fcb4f894.bindPopup(popup_d49e4a9f5beaa228a489f1e4df504851)
+        marker_33bee2533d8460cc67c15ac3a240e8da.bindPopup(popup_9c86ef8109302451144794ce7dec7b6c)
         ;
 
         
     
     
-            marker_0d05471c2b0b9b4e445cd2a8fcb4f894.bindTooltip(
+            marker_33bee2533d8460cc67c15ac3a240e8da.bindTooltip(
                 `<div>
-                     📍 2. La Fortaleza
+                     📍 1. Cane Garden Bay
                  </div>`,
                 {
   "sticky": true,
@@ -191,17 +143,17 @@
             );
         
     
-                marker_0d05471c2b0b9b4e445cd2a8fcb4f894.setIcon(icon_7d892c4759f550037839d3101f2119ad);
+                marker_33bee2533d8460cc67c15ac3a240e8da.setIcon(icon_0ec13912d1f4d054d4b356c318412401);
             
     
-            var marker_37654384397eaefb4792281118214a06 = L.marker(
-                [18.4665, -66.1169],
+            var marker_470c3315c9906e902c03f8dc1be2e596 = L.marker(
+                [18.4194, -64.6258],
                 {
 }
-            ).addTo(map_1a530cb55ada0bd1f3c2ad4df8c167b7);
+            ).addTo(map_1aec8cd53011cbc8582f8a53d6976025);
         
     
-            var icon_b16fefee7d06975e93d2379d9ed87efe = L.AwesomeMarkers.icon(
+            var icon_0b7ffff1f58455b4347897d4bdf391a3 = L.AwesomeMarkers.icon(
                 {
   "markerColor": "blue",
   "iconColor": "white",
@@ -212,26 +164,26 @@
             );
         
     
-        var popup_d4cad69989e96391c986dbdc42abddf3 = L.popup({
+        var popup_13dc9e30690df29b168cba7a271ea730 = L.popup({
   "maxWidth": 300,
 });
 
         
             
-                var html_e29d7518cfaad3aa2de2ad34b81e8664 = $(`<div id="html_e29d7518cfaad3aa2de2ad34b81e8664" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 San Juan National Historic Site</h3>           <p>Preserves fortifications comprising the walls of Old San Juan and several defensive structures.</p>           <p><b>Cost:</b> $10</p>           <p><b>Best Time to Visit:</b> Afternoon</p>           <p><b>Activities:</b></p>           <ul><li>Walking</li><li>History exploration</li></ul>         </div>         </div>`)[0];
-                popup_d4cad69989e96391c986dbdc42abddf3.setContent(html_e29d7518cfaad3aa2de2ad34b81e8664);
+                var html_aa1b418f5f86fa4932f48ad653c8af78 = $(`<div id="html_aa1b418f5f86fa4932f48ad653c8af78" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Sage Mountain National Park</h3>           <p>The highest point in the British Virgin Islands, featuring lush mahogany forests and scenic hiking trails.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Hiking</li><li>Bird watching</li><li>Nature photography</li></ul>         </div>         </div>`)[0];
+                popup_13dc9e30690df29b168cba7a271ea730.setContent(html_aa1b418f5f86fa4932f48ad653c8af78);
             
         
 
-        marker_37654384397eaefb4792281118214a06.bindPopup(popup_d4cad69989e96391c986dbdc42abddf3)
+        marker_470c3315c9906e902c03f8dc1be2e596.bindPopup(popup_13dc9e30690df29b168cba7a271ea730)
         ;
 
         
     
     
-            marker_37654384397eaefb4792281118214a06.bindTooltip(
+            marker_470c3315c9906e902c03f8dc1be2e596.bindTooltip(
                 `<div>
-                     📍 3. San Juan National Historic Site
+                     📍 2. Sage Mountain National Park
                  </div>`,
                 {
   "sticky": true,
@@ -239,17 +191,17 @@
             );
         
     
-                marker_37654384397eaefb4792281118214a06.setIcon(icon_b16fefee7d06975e93d2379d9ed87efe);
+                marker_470c3315c9906e902c03f8dc1be2e596.setIcon(icon_0b7ffff1f58455b4347897d4bdf391a3);
             
     
-            var marker_297c7573a2113ac7cf94fb8db94d113a = L.marker(
-                [18.3179, -65.7962],
+            var marker_82a73634b2e6d3193faa726e6f2cc8c1 = L.marker(
+                [18.4286, -64.6151],
                 {
 }
-            ).addTo(map_1a530cb55ada0bd1f3c2ad4df8c167b7);
+            ).addTo(map_1aec8cd53011cbc8582f8a53d6976025);
         
     
-            var icon_ed22cb0e75e056ded3b861fc9fbf4d87 = L.AwesomeMarkers.icon(
+            var icon_99735a9633ba517a9faead93bccf95ef = L.AwesomeMarkers.icon(
                 {
   "markerColor": "blue",
   "iconColor": "white",
@@ -260,26 +212,26 @@
             );
         
     
-        var popup_44bfb0c80c215e4bcf0dc2126cc2f636 = L.popup({
+        var popup_8c5c637a2bb7ac52460d7b485ee03844 = L.popup({
   "maxWidth": 300,
 });
 
         
             
-                var html_06682145d1f459fcf707f4e43d054b4f = $(`<div id="html_06682145d1f459fcf707f4e43d054b4f" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 El Yunque National Forest</h3>           <p>The only tropical rainforest in the United States National Forest System, known for biodiversity and hiking trails.</p>           <p><b>Cost:</b> Free (Tours vary)</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Hiking</li><li>Swimming</li><li>Bird watching</li></ul>         </div>         </div>`)[0];
-                popup_44bfb0c80c215e4bcf0dc2126cc2f636.setContent(html_06682145d1f459fcf707f4e43d054b4f);
+                var html_24b1f472e0aa347124b6a337f70e8f7b = $(`<div id="html_24b1f472e0aa347124b6a337f70e8f7b" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Road Town</h3>           <p>The bustling capital of the British Virgin Islands, offering historical sites, local markets, and diverse food options.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Afternoon</p>           <p><b>Activities:</b></p>           <ul><li>Sightseeing</li><li>Shopping</li><li>Food tasting</li></ul>         </div>         </div>`)[0];
+                popup_8c5c637a2bb7ac52460d7b485ee03844.setContent(html_24b1f472e0aa347124b6a337f70e8f7b);
             
         
 
-        marker_297c7573a2113ac7cf94fb8db94d113a.bindPopup(popup_44bfb0c80c215e4bcf0dc2126cc2f636)
+        marker_82a73634b2e6d3193faa726e6f2cc8c1.bindPopup(popup_8c5c637a2bb7ac52460d7b485ee03844)
         ;
 
         
     
     
-            marker_297c7573a2113ac7cf94fb8db94d113a.bindTooltip(
+            marker_82a73634b2e6d3193faa726e6f2cc8c1.bindTooltip(
                 `<div>
-                     📍 4. El Yunque National Forest
+                     📍 3. Road Town
                  </div>`,
                 {
   "sticky": true,
@@ -287,17 +239,17 @@
             );
         
     
-                marker_297c7573a2113ac7cf94fb8db94d113a.setIcon(icon_ed22cb0e75e056ded3b861fc9fbf4d87);
+                marker_82a73634b2e6d3193faa726e6f2cc8c1.setIcon(icon_99735a9633ba517a9faead93bccf95ef);
             
     
-            var marker_197dbb0b3de3b6b5f22696a41528f8ed = L.marker(
-                [18.4659, -66.1165],
+            var marker_c9cc696025e621b921200ba40a2e36e7 = L.marker(
+                [18.3908, -64.7172],
                 {
 }
-            ).addTo(map_1a530cb55ada0bd1f3c2ad4df8c167b7);
+            ).addTo(map_1aec8cd53011cbc8582f8a53d6976025);
         
     
-            var icon_3171f426b6d69a277199c697fcdd10da = L.AwesomeMarkers.icon(
+            var icon_aa76f77c7456158abbc434dc0faccbd5 = L.AwesomeMarkers.icon(
                 {
   "markerColor": "blue",
   "iconColor": "white",
@@ -308,26 +260,26 @@
             );
         
     
-        var popup_72680f06376462258f48eed9036a76e2 = L.popup({
+        var popup_d5df2849d84cc64ec4beabac6433de56 = L.popup({
   "maxWidth": 300,
 });
 
         
             
-                var html_cdefdb2b2a65ed506e26364bfb332041 = $(`<div id="html_cdefdb2b2a65ed506e26364bfb332041" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Catedral de San Juan Bautista</h3>           <p>One of the oldest cathedrals in the Americas, containing the tomb of explorer Ponce de León.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Afternoon</p>           <p><b>Activities:</b></p>           <ul><li>Religious history</li><li>Architecture appreciation</li></ul>         </div>         </div>`)[0];
-                popup_72680f06376462258f48eed9036a76e2.setContent(html_cdefdb2b2a65ed506e26364bfb332041);
+                var html_ea71f2a5505db70011d9387f1c2362d9 = $(`<div id="html_ea71f2a5505db70011d9387f1c2362d9" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Joss Van Dyke Ferry Dock (West End)</h3>           <p>A vibrant coastal hub offering great views and access to waterfront dining experiences.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Sunset</p>           <p><b>Activities:</b></p>           <ul><li>Ferry watching</li><li>Coastal walking</li><li>Dining</li></ul>         </div>         </div>`)[0];
+                popup_d5df2849d84cc64ec4beabac6433de56.setContent(html_ea71f2a5505db70011d9387f1c2362d9);
             
         
 
-        marker_197dbb0b3de3b6b5f22696a41528f8ed.bindPopup(popup_72680f06376462258f48eed9036a76e2)
+        marker_c9cc696025e621b921200ba40a2e36e7.bindPopup(popup_d5df2849d84cc64ec4beabac6433de56)
         ;
 
         
     
     
-            marker_197dbb0b3de3b6b5f22696a41528f8ed.bindTooltip(
+            marker_c9cc696025e621b921200ba40a2e36e7.bindTooltip(
                 `<div>
-                     📍 5. Catedral de San Juan Bautista
+                     📍 4. Joss Van Dyke Ferry Dock (West End)
                  </div>`,
                 {
   "sticky": true,
@@ -335,17 +287,17 @@
             );
         
     
-                marker_197dbb0b3de3b6b5f22696a41528f8ed.setIcon(icon_3171f426b6d69a277199c697fcdd10da);
+                marker_c9cc696025e621b921200ba40a2e36e7.setIcon(icon_aa76f77c7456158abbc434dc0faccbd5);
             
     
-            var marker_de16be7ba308bb220801074e72624096 = L.marker(
-                [18.4673, -66.1192],
+            var marker_fb3a8bcf14fa8d0d8d867c0846c0b2f9 = L.marker(
+                [18.4411, -64.5772],
                 {
 }
-            ).addTo(map_1a530cb55ada0bd1f3c2ad4df8c167b7);
+            ).addTo(map_1aec8cd53011cbc8582f8a53d6976025);
         
     
-            var icon_9502b10e3b520b4d452b3fe30db63a81 = L.AwesomeMarkers.icon(
+            var icon_21c6f11226dee87b746b86ae20a443e9 = L.AwesomeMarkers.icon(
                 {
   "markerColor": "blue",
   "iconColor": "white",
@@ -356,26 +308,26 @@
             );
         
     
-        var popup_e3bdc8b5039158038e0eae09d152fe42 = L.popup({
+        var popup_42248110262b725c02a323d98783bb07 = L.popup({
   "maxWidth": 300,
 });
 
         
             
-                var html_52d0992ec475f62bce9a7fa2f22f7ad3 = $(`<div id="html_52d0992ec475f62bce9a7fa2f22f7ad3" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Museo de las Américas</h3>           <p>Museum dedicated to the cultural and social history of the Americas, located in the historic Cuartel de Ballajá.</p>           <p><b>Cost:</b> $6</p>           <p><b>Best Time to Visit:</b> Afternoon</p>           <p><b>Activities:</b></p>           <ul><li>Art viewing</li><li>Cultural learning</li></ul>         </div>         </div>`)[0];
-                popup_e3bdc8b5039158038e0eae09d152fe42.setContent(html_52d0992ec475f62bce9a7fa2f22f7ad3);
+                var html_6fe58da25b2196b770935de70f04d8ce = $(`<div id="html_6fe58da25b2196b770935de70f04d8ce" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Mount Healthy National Park</h3>           <p>An educational historical site preserving the remains of an 18th-century sugar mill.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Exploring ruins</li><li>Learning local history</li></ul>         </div>         </div>`)[0];
+                popup_42248110262b725c02a323d98783bb07.setContent(html_6fe58da25b2196b770935de70f04d8ce);
             
         
 
-        marker_de16be7ba308bb220801074e72624096.bindPopup(popup_e3bdc8b5039158038e0eae09d152fe42)
+        marker_fb3a8bcf14fa8d0d8d867c0846c0b2f9.bindPopup(popup_42248110262b725c02a323d98783bb07)
         ;
 
         
     
     
-            marker_de16be7ba308bb220801074e72624096.bindTooltip(
+            marker_fb3a8bcf14fa8d0d8d867c0846c0b2f9.bindTooltip(
                 `<div>
-                     📍 6. Museo de las Américas
+                     📍 5. Mount Healthy National Park
                  </div>`,
                 {
   "sticky": true,
@@ -383,17 +335,17 @@
             );
         
     
-                marker_de16be7ba308bb220801074e72624096.setIcon(icon_9502b10e3b520b4d452b3fe30db63a81);
+                marker_fb3a8bcf14fa8d0d8d867c0846c0b2f9.setIcon(icon_21c6f11226dee87b746b86ae20a443e9);
             
     
-            var marker_200882923899a3ee6fcecd6dfec8458e = L.marker(
-                [18.4638, -66.1152],
+            var marker_d0264a556b736e53a225c86aaf86b01f = L.marker(
+                [18.4358, -64.6492],
                 {
 }
-            ).addTo(map_1a530cb55ada0bd1f3c2ad4df8c167b7);
+            ).addTo(map_1aec8cd53011cbc8582f8a53d6976025);
         
     
-            var icon_ab2cce9ab164b99feea029eed35074e8 = L.AwesomeMarkers.icon(
+            var icon_2f38c9ae6e6f332994f3c051f317c202 = L.AwesomeMarkers.icon(
                 {
   "markerColor": "blue",
   "iconColor": "white",
@@ -404,26 +356,26 @@
             );
         
     
-        var popup_cb8874baa99d0180c3f54634faf611b5 = L.popup({
+        var popup_8da5cff9b710cab67fcb64849730c859 = L.popup({
   "maxWidth": 300,
 });
 
         
             
-                var html_6ce43efa2252b9098bd88b91a3f0c62c = $(`<div id="html_6ce43efa2252b9098bd88b91a3f0c62c" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Paseo de la Princesa</h3>           <p>A scenic walkway built in 1853 featuring statues, fountains, and beautiful views of San Juan Bay.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Evening</p>           <p><b>Activities:</b></p>           <ul><li>Strolling</li><li>Sunset viewing</li><li>Dining</li></ul>         </div>         </div>`)[0];
-                popup_cb8874baa99d0180c3f54634faf611b5.setContent(html_6ce43efa2252b9098bd88b91a3f0c62c);
+                var html_c9eea33c94c229fd3362d502fe926a3b = $(`<div id="html_c9eea33c94c229fd3362d502fe926a3b" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Brewers Bay</h3>           <p>A secluded beach ideal for snorkeling, reef exploration, and enjoying quiet local snacks.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Morning</p>           <p><b>Activities:</b></p>           <ul><li>Snorkeling</li><li>Relaxing</li><li>Beach picnic</li></ul>         </div>         </div>`)[0];
+                popup_8da5cff9b710cab67fcb64849730c859.setContent(html_c9eea33c94c229fd3362d502fe926a3b);
             
         
 
-        marker_200882923899a3ee6fcecd6dfec8458e.bindPopup(popup_cb8874baa99d0180c3f54634faf611b5)
+        marker_d0264a556b736e53a225c86aaf86b01f.bindPopup(popup_8da5cff9b710cab67fcb64849730c859)
         ;
 
         
     
     
-            marker_200882923899a3ee6fcecd6dfec8458e.bindTooltip(
+            marker_d0264a556b736e53a225c86aaf86b01f.bindTooltip(
                 `<div>
-                     📍 7. Paseo de la Princesa
+                     📍 6. Brewers Bay
                  </div>`,
                 {
   "sticky": true,
@@ -431,17 +383,17 @@
             );
         
     
-                marker_200882923899a3ee6fcecd6dfec8458e.setIcon(icon_ab2cce9ab164b99feea029eed35074e8);
+                marker_d0264a556b736e53a225c86aaf86b01f.setIcon(icon_2f38c9ae6e6f332994f3c051f317c202);
             
     
-            var marker_3768c548d7f45ead21473e4cba551275 = L.marker(
-                [18.3155, -65.3093],
+            var marker_d6fb793bdfd329ad78fc386f19c4527d = L.marker(
+                [18.4239, -64.6067],
                 {
 }
-            ).addTo(map_1a530cb55ada0bd1f3c2ad4df8c167b7);
+            ).addTo(map_1aec8cd53011cbc8582f8a53d6976025);
         
     
-            var icon_7c04dfa083430df4e85b93ddb0b176e7 = L.AwesomeMarkers.icon(
+            var icon_de0b4be465d20bf9069d7b2e189c5581 = L.AwesomeMarkers.icon(
                 {
   "markerColor": "blue",
   "iconColor": "white",
@@ -452,26 +404,26 @@
             );
         
     
-        var popup_adc3033c86f4c55b788cfa375c342297 = L.popup({
+        var popup_11d330d6bb10c90ade8eb0386acde49d = L.popup({
   "maxWidth": 300,
 });
 
         
             
-                var html_1fd28954dc58c195031ae888556caa0e = $(`<div id="html_1fd28954dc58c195031ae888556caa0e" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Culebra Island (Flamenco Beach)</h3>           <p>World-famous pristine beach featuring crystal-clear turquoise waters and remnants of military tanks.</p>           <p><b>Cost:</b> $80 (Ferry/Excursion)</p>           <p><b>Best Time to Visit:</b> Full Day</p>           <p><b>Activities:</b></p>           <ul><li>Snorkeling</li><li>Swimming</li><li>Relaxing</li></ul>         </div>         </div>`)[0];
-                popup_adc3033c86f4c55b788cfa375c342297.setContent(html_1fd28954dc58c195031ae888556caa0e);
+                var html_8fc0b29c7b42102d44e430388bee72a1 = $(`<div id="html_8fc0b29c7b42102d44e430388bee72a1" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Sky World Lookout</h3>           <p>A high-altitude viewpoint providing panoramic vistas of the surrounding islands and an onsite restaurant.</p>           <p><b>Cost:</b> $10</p>           <p><b>Best Time to Visit:</b> Afternoon</p>           <p><b>Activities:</b></p>           <ul><li>Photography</li><li>Sightseeing</li><li>Dining</li></ul>         </div>         </div>`)[0];
+                popup_11d330d6bb10c90ade8eb0386acde49d.setContent(html_8fc0b29c7b42102d44e430388bee72a1);
             
         
 
-        marker_3768c548d7f45ead21473e4cba551275.bindPopup(popup_adc3033c86f4c55b788cfa375c342297)
+        marker_d6fb793bdfd329ad78fc386f19c4527d.bindPopup(popup_11d330d6bb10c90ade8eb0386acde49d)
         ;
 
         
     
     
-            marker_3768c548d7f45ead21473e4cba551275.bindTooltip(
+            marker_d6fb793bdfd329ad78fc386f19c4527d.bindTooltip(
                 `<div>
-                     📍 8. Culebra Island (Flamenco Beach)
+                     📍 7. Sky World Lookout
                  </div>`,
                 {
   "sticky": true,
@@ -479,7 +431,55 @@
             );
         
     
-                marker_3768c548d7f45ead21473e4cba551275.setIcon(icon_7c04dfa083430df4e85b93ddb0b176e7);
+                marker_d6fb793bdfd329ad78fc386f19c4527d.setIcon(icon_de0b4be465d20bf9069d7b2e189c5581);
+            
+    
+            var marker_84b60452e4a2de5e254178bbdb48ebbd = L.marker(
+                [18.4289, -64.6806],
+                {
+}
+            ).addTo(map_1aec8cd53011cbc8582f8a53d6976025);
+        
+    
+            var icon_f8922517ad4ba8e9757c527a57195c22 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_9b19f9de01a64f497afccbbe487d0076 = L.popup({
+  "maxWidth": 300,
+});
+
+        
+            
+                var html_fcff08fb866519d10561418daa90b303 = $(`<div id="html_fcff08fb866519d10561418daa90b303" style="width: 100.0%; height: 100.0%;">         <div style="width: 300px;">           <h3>📍 Apple Bay</h3>           <p>A famous surfing beach on Tortola&#x27;s north shore known for great waves and casual local eateries.</p>           <p><b>Cost:</b> Free</p>           <p><b>Best Time to Visit:</b> Afternoon</p>           <p><b>Activities:</b></p>           <ul><li>Surfing</li><li>Sunbathing</li><li>Eating local fish</li></ul>         </div>         </div>`)[0];
+                popup_9b19f9de01a64f497afccbbe487d0076.setContent(html_fcff08fb866519d10561418daa90b303);
+            
+        
+
+        marker_84b60452e4a2de5e254178bbdb48ebbd.bindPopup(popup_9b19f9de01a64f497afccbbe487d0076)
+        ;
+
+        
+    
+    
+            marker_84b60452e4a2de5e254178bbdb48ebbd.bindTooltip(
+                `<div>
+                     📍 8. Apple Bay
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_84b60452e4a2de5e254178bbdb48ebbd.setIcon(icon_f8922517ad4ba8e9757c527a57195c22);
             
 </script>
 </html>

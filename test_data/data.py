@@ -1,7 +1,5 @@
 from pathlib import Path
-from faker import Faker
-
-fake = Faker()
+from random import choice, randint
 
 # MODELS
 CURRENT_MODEL = "gemini-3.8-flash"
@@ -14,7 +12,7 @@ COUNTRIES = tuple(
     if country.strip()
 )
 
-COUNTRY = fake.random_element(elements=COUNTRIES)
-DAYS = fake.random_int(min=1, max=365)
-BUDGET = fake.random_int(min=100, max=5000)
+COUNTRY = choice(COUNTRIES)
+DAYS = randint(1, 365)
+BUDGET = randint(100, 5000)
 INTERESTS = "food", "history", "nature"

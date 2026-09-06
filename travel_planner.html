@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ForShore - Prototype</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <link rel="stylesheet" href="./travel_planner_styles.css" />
+    <script
+      type="module"
+      src="https://pyscript.net/releases/2026.7.3/core.js"
+    ></script>
+  </head>
+  <body background="./test_data/tropical_beach.png" opacity="0.90">
+
+    <h1>ForShore - Prototype</h1>
+    <label for="country" class="form">Please enter the country you want to visit:</label><p>
+    <input type="text" id="country" name="country" maxlength="50" placeholder="e.g., France" required /><p>
+    <label for="days" class="form">How many days will you be traveling?</label><p>
+    <input type="number" id="days" name="days"min="1" max="365" placeholder="days" required /><p>
+    <label for="budget" class="form">What is your travel budget?</label><p>
+    <input type="text" id="budget" name="budget" maxlength="6" placeholder="e.g., 1000" onkeypress="return /[0-9]/i.test(event.key)" required />
+    <p>
+    <fieldset id="interests" class="form" >
+      <legend>What are you interested in?</legend>
+      <label><input type="checkbox" name="interest" value="history" />History<br /></label>
+      <label><input type="checkbox" name="interest" value="nature" />Nature<br /></label>
+      <label><input type="checkbox" name="interest" value="food" />Food<br /></label>
+      <label><input type="checkbox" name="interest" value="adventure" />Adventure<br /></label>
+      <label><input type="checkbox" name="interest" value="culture" />Culture<br /></label>
+      <label><input type="checkbox" name="interest" value="beaches" />Beaches</label>
+      </fieldset>
+    </p>
+
+    <p>
+      <a href="./index.html" class="back_button-class">Go Back</a>  
+      <button class="button-class" id="generate-plan" value="submit">Generate Travel Plan</button>
+    </p>
+
+    <div id="output"></div>
+    <script type="py" src="./travel_planner.py" config="./pyscript.toml"></script>
+  </body>
+</html>

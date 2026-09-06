@@ -1,0 +1,59 @@
+    .body_style {
+        background-image: url('./test_data/tropical_beach.png');
+        opacity: 0.90;
+    }
+
+    h1, h2, p {
+        color: white;
+        font-family: arial, sans-serif;
+    }
+    
+    .form {
+    color: white;
+    background-color: #008080;
+    opacity: 0.6;
+    padding: 5px;
+    border-radius: 2px;
+    font-family: arial, sans-serif;
+    }
+    .button-class {
+    background-color: #008080;
+    opacity: 0.6;
+    /* TEAL */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    font-family: arial, sans-serif;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    }
+
+    .back_button-class {
+    background-color: #003366;
+    opacity: 0.6;
+    /* NAVY BLUE */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    font-family: arial, sans-serif;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    }
+
+    .disclaimer {
+    font-family: arial, sans-serif;
+    font-size: 12px;
+    color: #555;
+    text-align: center;
+    align-items: bottom;
+    }

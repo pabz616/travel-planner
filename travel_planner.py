@@ -5,9 +5,11 @@ AI TRAVEL PLANNER (revised)
 from __future__ import annotations
 
 import html
+import io
 import logging
 import os
 import time
+from contextlib import redirect_stdout
 from functools import lru_cache
 from typing import Optional
 
@@ -20,13 +22,15 @@ from pydantic import BaseModel, Field, ValidationError
 
 from test_data.data import COUNTRIES, CURRENT_MODEL, FALLBACK_MODEL
 
+from pyscript import web, when
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger("travel_planner")
 
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
 if not API_KEY:
-    raise RuntimeError("API_KEY is not set. Add it to your environment or .env file.")
+    raise RuntimeError("API_KEY is not set. Configure it in the server environment.")
 
 client = genai.Client(api_key=API_KEY)
 
@@ -271,8 +275,8 @@ def create_travel_plan(
         models = _available_configured_models()
     except Exception as error:
         raise ModelAvailabilityError(
-            "Unable to check Gemini model availability. Verify API_KEY, network access, "
-            "and the Google GenAI client configuration."
+            "Unable to check Gemini model availability: "
+            f"{type(error).__name__}: {error}"
         ) from error
 
     if not models:
@@ -502,33 +506,49 @@ def build_map(plan: TravelPlan, output_path: str = "travel_map.html") -> str:
 # CLI
 # --------------------------------------------------------------------------
 
+output_div = web.page["output"]
+
+
 def _print_header(title: str) -> None:
     print("\n" + "=" * 70)
     print(title)
     print("=" * 70)
 
 
-def main() -> None:
+def _run_plan() -> None:
     print("=" * 70)
     print(" ✈️ AI TRAVEL PLANNER")
     print("=" * 70)
 
     try:
-        country = input("Please enter the country you want to visit: ").strip()
+        # country = input("Please enter the country you want to visit: ").strip()
+        country_input = web.page["country"]
+        country = country_input.value
         _validate_text_input(country, "country name", 50)
         _validate_country_exists(country)
 
-        days_input = input("How many days will you be traveling for? ").strip()
+        # days_input = input("How many days will you be traveling for? ").strip()
+        days_input = web.page["days"]
+        days_input = days_input.value
         _validate_numeric_input(days_input, "number of days", 3)
         days = int(days_input)
         if days > 365:
             raise InputValidationError("Number of days must be 365 or fewer.")
 
-        budget_input = input("What is your travel budget? ").strip()
+        # budget_input = input("What is your travel budget? ").strip()
+        budget_input = web.page["budget"]
+        budget_input = budget_input.value
         _validate_numeric_input(budget_input, "budget", 6)
         budget = float(budget_input)
 
-        interests = input("What are your interests (e.g., history, nature, food)? ")
+    #     interests = input("What are your interests (e.g., history, nature, food)? ").strip()
+    #     _validate_text_input(interests, "interests", 100)
+    # except InputValidationError as error:
+    #     print(f"\n❌ {error}")
+    #     return
+
+        selected_interests = web.page.find("#interests input:checked")
+        interests = ", ".join(item.value for item in selected_interests)
         _validate_text_input(interests, "interests", 100)
     except InputValidationError as error:
         print(f"\n❌ {error}")
@@ -609,5 +629,16 @@ def main() -> None:
     _print_header("🎉 TRAVEL PLAN COMPLETE!")
 
 
+@when("click", "#generate-plan")
+def main() -> None:
+    output = io.StringIO()
+    with redirect_stdout(output):
+        _run_plan()
+
+    rendered_output = output.getvalue()
+    output_div.innerHTML = f"<pre>{html.escape(rendered_output)}</pre>"
+    print(rendered_output, end="")
+
+
 if __name__ == "__main__":
-    main()
+    _run_plan()
